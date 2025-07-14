@@ -33,7 +33,7 @@
         <!-- Image Controls -->
         <div class="image-controls">
             <button id="prev-btn" class="btn btn-control" disabled>⏮ Previous</button>
-            <button id="play-pause-btn" class="btn btn-control">⏸ Pause</button>
+            <button id="play-pause-btn" class="btn btn-control">▶ Play</button>
             <button id="next-btn" class="btn btn-control">Next ⏭</button>
         </div>
         
@@ -120,21 +120,42 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 let currentImageIndex = 0;
-let isPlaying = true;
+let isPlaying = false;
 let playInterval = null;
 let selectedTaxonId = null;
+let preloadedImages = {};
+let isPreloading = false;
 
 function initializeGame() {
     // Set up image display
     if (gameData.images && gameData.images.length > 0) {
+        // Start preloading all images
+        preloadAllImages();
         displayImage(0);
-        startAutoPlay();
+        // Don't auto-start playing
     }
     
     // Set up controls
     setupImageControls();
     setupGuessInput();
     setupSubmitButton();
+}
+
+function preloadAllImages() {
+    isPreloading = true;
+    console.log('Starting to preload', gameData.images.length, 'images...');
+    
+    gameData.images.forEach((image, index) => {
+        const img = new Image();
+        img.onload = function() {
+            preloadedImages[index] = img;
+            console.log(`Preloaded image ${index + 1}/${gameData.images.length}`);
+        };
+        img.onerror = function() {
+            console.error(`Failed to preload image ${index}:`, image.url);
+        };
+        img.src = image.url;
+    });
 }
 
 function displayImage(index) {
@@ -145,21 +166,37 @@ function displayImage(index) {
     const imageElement = document.getElementById('current-image');
     const loadingElement = document.getElementById('image-loading');
     
-    // Show loading
-    loadingElement.style.display = 'block';
-    imageElement.style.display = 'none';
-    
-    // Load image
-    imageElement.onload = function() {
+    // Check if image is preloaded
+    if (preloadedImages[index]) {
+        // Image is preloaded, display immediately without flash
+        imageElement.src = preloadedImages[index].src;
         loadingElement.style.display = 'none';
         imageElement.style.display = 'block';
-    };
-    
-    imageElement.onerror = function() {
-        loadingElement.textContent = 'Failed to load image';
-    };
-    
-    imageElement.src = image.url;
+    } else {
+        // Image not preloaded yet, show loading indicator but keep current image visible
+        if (imageElement.src) {
+            // Keep current image visible, show loading overlay
+            loadingElement.style.display = 'block';
+            loadingElement.textContent = 'Loading next image...';
+        } else {
+            // First image, hide current image and show loading
+            imageElement.style.display = 'none';
+            loadingElement.style.display = 'block';
+            loadingElement.textContent = 'Loading image...';
+        }
+        
+        // Load image
+        imageElement.onload = function() {
+            loadingElement.style.display = 'none';
+            imageElement.style.display = 'block';
+        };
+        
+        imageElement.onerror = function() {
+            loadingElement.textContent = 'Failed to load image';
+        };
+        
+        imageElement.src = image.url;
+    }
     
     // Update counters
     document.getElementById('image-counter').textContent = 

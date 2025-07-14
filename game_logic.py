@@ -230,7 +230,7 @@ def format_score_result(points: int, matching_level: str, explanation: str,
     elif points >= 3:
         result['message'] = "Good work! You're on the right track!"
     elif points >= 1:
-        result['message'] = "Not bad! You got the general category!"
+        result['message'] = f"Not bad! You got the {matching_level}!"
     else:
         result['message'] = "Keep trying! Every guess helps you learn!"
     

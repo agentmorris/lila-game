@@ -126,7 +126,7 @@ class Images:
     
     @staticmethod
     def get_images_for_sequences(sequence_ids: List[int], cloud_preference: str = 'gcp') -> List[Dict]:
-        """Get all images for given sequences, ordered by sequence and frame."""
+        """Get images for given sequences (max 10 per sequence), ordered by sequence and frame."""
         if not sequence_ids:
             return []
         
@@ -135,11 +135,16 @@ class Images:
         
         placeholders = ','.join(['?'] * len(sequence_ids))
         cursor.execute(f'''
-            SELECT i.*, s.sequence_id as original_sequence_id
-            FROM images i
-            JOIN sequences s ON i.sequence_table_id = s.id
-            WHERE i.sequence_table_id IN ({placeholders})
-            ORDER BY i.sequence_table_id, i.frame_num
+            SELECT *
+            FROM (
+                SELECT i.*, s.sequence_id as original_sequence_id,
+                       ROW_NUMBER() OVER (PARTITION BY i.sequence_table_id ORDER BY i.frame_num) as rn
+                FROM images i
+                JOIN sequences s ON i.sequence_table_id = s.id
+                WHERE i.sequence_table_id IN ({placeholders})
+            ) 
+            WHERE rn <= 10
+            ORDER BY sequence_table_id, frame_num
         ''', sequence_ids)
         
         images = []

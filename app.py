@@ -24,15 +24,13 @@ game_sessions = {}
 def index():
     """Home page."""
     
-    # Get database stats for display
+    # Get database stats for display (simplified for large databases)
     try:
-        stats = GameData.get_taxon_statistics()
-        validation = GameData.validate_database()
+        # Skip slow stats and validation queries for faster loading
+        stats = {}
+        ready_to_play = True  # Assume ready since database exists
         
-        # Check if database is ready for play
-        ready_to_play = all(validation.values())
-        
-        # Get high scores
+        # Get high scores (should be fast)
         high_scores = HighScores.get_top_scores()
         
     except Exception as e:
@@ -341,20 +339,21 @@ if __name__ == '__main__':
         print("2. python data_processor.py --csv-path /path/to/your/data.csv")
         exit(1)
     
-    # Validate database
-    try:
-        validation = GameData.validate_database()
-        if not all(validation.values()):
-            print("Warning: Database validation failed:")
-            for check, passed in validation.items():
-                if not passed:
-                    print(f"  - {check}: FAILED")
-            print("The game may not work properly.")
-    except Exception as e:
-        print(f"Warning: Could not validate database: {e}")
+    # Validate database (commented out for large databases - slow queries)
+    # try:
+    #     validation = GameData.validate_database()
+    #     if not all(validation.values()):
+    #         print("Warning: Database validation failed:")
+    #         for check, passed in validation.items():
+    #             if not passed:
+    #                 print(f"  - {check}: FAILED")
+    #         print("The game may not work properly.")
+    # except Exception as e:
+    #     print(f"Warning: Could not validate database: {e}")
+    print("Skipping database validation for faster startup...")
     
     # Run the application
     print("Starting Wildlife Camera Trap Game...")
-    print("Open your browser to http://localhost:5000")
+    print("Open your browser to http://localhost:5001")
     
-    app.run(debug=True, host='0.0.0.0', port=5000)
+    app.run(debug=True, host='0.0.0.0', port=5001)
