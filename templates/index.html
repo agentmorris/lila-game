@@ -1,0 +1,157 @@
+{% extends "base.html" %}
+
+{% block title %}Wildlife Camera Trap Game - Home{% endblock %}
+
+{% block content %}
+<div class="home-page">
+    <div class="hero-section">
+        <h1 class="hero-title">Wildlife Camera Trap Game</h1>
+        <p class="hero-subtitle">Test your wildlife identification skills with real camera trap images!</p>
+        
+        {% if ready_to_play %}
+            <button id="start-game-btn" class="btn btn-primary btn-large">
+                🎮 Start New Game
+            </button>
+        {% else %}
+            <div class="alert alert-error">
+                <h3>Game Not Ready</h3>
+                <p>The database is not properly set up. Please follow the setup instructions in the README.</p>
+            </div>
+        {% endif %}
+    </div>
+
+    <div class="game-info">
+        <div class="info-grid">
+            <div class="info-card">
+                <h3>How to Play</h3>
+                <ul>
+                    <li>View sequences of wildlife camera images</li>
+                    <li>Guess the animal species, genus, family, etc.</li>
+                    <li>Use the autocomplete search to find matches</li>
+                    <li>Earn points based on taxonomic accuracy</li>
+                    <li>Complete 10 questions to finish a game</li>
+                </ul>
+            </div>
+
+            <div class="info-card">
+                <h3>Scoring System</h3>
+                <div class="scoring-info">
+                    <div class="score-item">
+                        <span class="score-points">10 pts</span>
+                        <span class="score-desc">Species, Subspecies, Variety</span>
+                    </div>
+                    <div class="score-item">
+                        <span class="score-points">5 pts</span>
+                        <span class="score-desc">Genus</span>
+                    </div>
+                    <div class="score-item">
+                        <span class="score-points">3 pts</span>
+                        <span class="score-desc">Family</span>
+                    </div>
+                    <div class="score-item">
+                        <span class="score-points">1 pt</span>
+                        <span class="score-desc">Order and above</span>
+                    </div>
+                </div>
+            </div>
+
+            {% if stats %}
+            <div class="info-card">
+                <h3>Database Statistics</h3>
+                <div class="stats-grid">
+                    <div class="stat-item">
+                        <span class="stat-number">{{ "{:,}".format(stats.taxa_count) }}</span>
+                        <span class="stat-label">Taxa</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-number">{{ "{:,}".format(stats.sequences_count) }}</span>
+                        <span class="stat-label">Sequences</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-number">{{ "{:,}".format(stats.images_count) }}</span>
+                        <span class="stat-label">Images</span>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    {% if high_scores %}
+    <div class="high-scores-preview">
+        <h2>Top Scores</h2>
+        <div class="scores-list">
+            {% for score in high_scores[:5] %}
+            <div class="score-entry">
+                <span class="score-rank">{{ loop.index }}</span>
+                <span class="score-name">{{ score.player_name }}</span>
+                <span class="score-points">{{ score.score }} pts</span>
+            </div>
+            {% endfor %}
+        </div>
+        <a href="{{ url_for('high_scores') }}" class="btn btn-secondary">View All High Scores</a>
+    </div>
+    {% endif %}
+
+    <div class="tips-section">
+        <h2>Tips for Success</h2>
+        <div class="tips-grid">
+            <div class="tip-card">
+                <h4>🔍 Look for Details</h4>
+                <p>Pay attention to body shape, size, coloring, and distinctive features like antlers, tails, or ears.</p>
+            </div>
+            <div class="tip-card">
+                <h4>🌍 Consider Habitat</h4>
+                <p>The environment can give clues about what animals might be present in that ecosystem.</p>
+            </div>
+            <div class="tip-card">
+                <h4>📚 Use Scientific Names</h4>
+                <p>Search using both common names (like "deer") and scientific names (like "Cervidae") for better matches.</p>
+            </div>
+            <div class="tip-card">
+                <h4>🎯 Start Broad</h4>
+                <p>If you're unsure of the exact species, try guessing the family or genus - you'll still earn points!</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const startBtn = document.getElementById('start-game-btn');
+    
+    if (startBtn) {
+        startBtn.addEventListener('click', function() {
+            startNewGame();
+        });
+    }
+});
+
+function startNewGame() {
+    showLoading();
+    
+    fetch('/start_game', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        hideLoading();
+        
+        if (data.error) {
+            alert('Error starting game: ' + data.error);
+        } else {
+            // Redirect to first question
+            window.location.href = `/question/${data.session_id}/1`;
+        }
+    })
+    .catch(error => {
+        hideLoading();
+        console.error('Error:', error);
+        alert('Failed to start game. Please try again.');
+    });
+}
+</script>
+{% endblock %}

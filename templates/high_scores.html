@@ -1,0 +1,175 @@
+{% extends "base.html" %}
+
+{% block title %}High Scores - Wildlife Camera Trap Game{% endblock %}
+
+{% block content %}
+<div class="high-scores-page">
+    <div class="page-header">
+        <h1 class="page-title">🏆 High Scores</h1>
+        <p class="page-subtitle">Top wildlife identification experts</p>
+    </div>
+
+    {% if high_scores %}
+    <div class="scores-container">
+        <div class="scores-table">
+            <div class="table-header">
+                <span class="rank-header">Rank</span>
+                <span class="name-header">Player</span>
+                <span class="score-header">Score</span>
+                <span class="date-header">Date</span>
+            </div>
+            
+            {% for score in high_scores %}
+            <div class="score-row {% if loop.index == 1 %}first-place{% elif loop.index == 2 %}second-place{% elif loop.index == 3 %}third-place{% endif %}">
+                <span class="rank">
+                    {% if loop.index == 1 %}
+                        🥇
+                    {% elif loop.index == 2 %}
+                        🥈
+                    {% elif loop.index == 3 %}
+                        🥉
+                    {% else %}
+                        {{ loop.index }}
+                    {% endif %}
+                </span>
+                <span class="name">{{ score.player_name }}</span>
+                <span class="score">{{ score.score }}</span>
+                <span class="date">
+                    {% if score.game_date %}
+                        {{ score.game_date.strftime('%m/%d/%Y') }}
+                    {% else %}
+                        --
+                    {% endif %}
+                </span>
+            </div>
+            {% endfor %}
+        </div>
+        
+        {% if high_scores|length < 10 %}
+        <div class="scores-info">
+            <p class="info-text">
+                <strong>{{ 10 - high_scores|length }}</strong> spots remaining on the leaderboard!
+            </p>
+        </div>
+        {% endif %}
+    </div>
+    
+    <!-- Statistics -->
+    <div class="score-stats">
+        <h2>Leaderboard Statistics</h2>
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-number">{{ high_scores[0].score if high_scores else 0 }}</div>
+                <div class="stat-label">Highest Score</div>
+            </div>
+            {% if high_scores|length > 1 %}
+            <div class="stat-card">
+                <div class="stat-number">{{ "%.1f"|format((high_scores|sum(attribute='score')) / high_scores|length) }}</div>
+                <div class="stat-label">Average Score</div>
+            </div>
+            {% endif %}
+            <div class="stat-card">
+                <div class="stat-number">{{ high_scores|length }}</div>
+                <div class="stat-label">Total Players</div>
+            </div>
+        </div>
+    </div>
+
+    {% else %}
+    <!-- No scores yet -->
+    <div class="no-scores">
+        <div class="no-scores-icon">🎯</div>
+        <h2>No High Scores Yet</h2>
+        <p>Be the first to set a high score! Start a game and show off your wildlife identification skills.</p>
+    </div>
+    {% endif %}
+
+    <!-- Challenge Section -->
+    <div class="challenge-section">
+        <h2>Think You Can Beat These Scores?</h2>
+        <div class="challenge-info">
+            <div class="challenge-tips">
+                <h3>Tips for High Scores:</h3>
+                <ul>
+                    <li><strong>Learn Animal Families:</strong> Knowing major families like Felidae (cats) or Cervidae (deer) can earn you 3 points even if you don't know the exact species</li>
+                    <li><strong>Use Scientific Names:</strong> Try both common names and scientific names in your guesses</li>
+                    <li><strong>Look for Distinctive Features:</strong> Antlers, tail shapes, body size, and coloring are key identification clues</li>
+                    <li><strong>Consider Habitat:</strong> The environment can give hints about what animals might be present</li>
+                    <li><strong>Practice Makes Perfect:</strong> The more you play, the better you'll get at recognizing wildlife patterns</li>
+                </ul>
+            </div>
+            
+            <div class="scoring-reminder">
+                <h3>Scoring System:</h3>
+                <div class="score-breakdown">
+                    <div class="score-item">
+                        <span class="points">10 pts</span>
+                        <span class="level">Species/Subspecies</span>
+                    </div>
+                    <div class="score-item">
+                        <span class="points">5 pts</span>
+                        <span class="level">Genus</span>
+                    </div>
+                    <div class="score-item">
+                        <span class="points">3 pts</span>
+                        <span class="level">Family</span>
+                    </div>
+                    <div class="score-item">
+                        <span class="points">1 pt</span>
+                        <span class="level">Order & Above</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Action Buttons -->
+    <div class="action-buttons">
+        <button id="start-game-btn" class="btn btn-primary btn-large">
+            🎮 Challenge the Leaderboard
+        </button>
+        <a href="{{ url_for('index') }}" class="btn btn-secondary">
+            🏠 Back to Home
+        </a>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const startBtn = document.getElementById('start-game-btn');
+    
+    if (startBtn) {
+        startBtn.addEventListener('click', function() {
+            startNewGame();
+        });
+    }
+});
+
+function startNewGame() {
+    showLoading();
+    
+    fetch('/start_game', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        hideLoading();
+        
+        if (data.error) {
+            alert('Error starting game: ' + data.error);
+        } else {
+            // Redirect to first question
+            window.location.href = `/question/${data.session_id}/1`;
+        }
+    })
+    .catch(error => {
+        hideLoading();
+        console.error('Error:', error);
+        alert('Failed to start game. Please try again.');
+    });
+}
+</script>
+{% endblock %}

@@ -1,0 +1,398 @@
+{% extends "base.html" %}
+
+{% block title %}Question {{ question_num }} - Wildlife Camera Trap Game{% endblock %}
+
+{% block content %}
+<div class="question-page">
+    <!-- Game Header -->
+    <div class="game-header">
+        <div class="game-progress">
+            <span class="question-counter">Question {{ question_num }} of {{ total_questions }}</span>
+            <div class="progress-bar">
+                <div class="progress-fill" style="width: {{ (question_num / total_questions * 100) }}%"></div>
+            </div>
+        </div>
+        <div class="score-display">
+            <span class="score-label">Score:</span>
+            <span class="score-value">{{ current_score }}</span>
+        </div>
+    </div>
+
+    <!-- Instructions -->
+    <div class="instructions">
+        <p>Watch the image sequence and identify the animal. Use the search box below to guess the species, genus, family, or common name.</p>
+    </div>
+
+    <!-- Image Display -->
+    <div class="image-section">
+        <div class="image-container">
+            <img id="current-image" src="" alt="Wildlife camera image" class="wildlife-image">
+            <div class="image-loading" id="image-loading">Loading image...</div>
+        </div>
+        
+        <!-- Image Controls -->
+        <div class="image-controls">
+            <button id="prev-btn" class="btn btn-control" disabled>⏮ Previous</button>
+            <button id="play-pause-btn" class="btn btn-control">⏸ Pause</button>
+            <button id="next-btn" class="btn btn-control">Next ⏭</button>
+        </div>
+        
+        <!-- Image Info -->
+        <div class="image-info">
+            <span id="image-counter">Image 1 of {{ total_images }}</span>
+            <span class="separator">•</span>
+            <span id="sequence-info">{{ sequences_count }} sequences</span>
+        </div>
+    </div>
+
+    <!-- Guess Section -->
+    <div class="guess-section">
+        <div class="guess-form">
+            <label for="guess-input" class="guess-label">Your Guess:</label>
+            <div class="autocomplete-container">
+                <input type="text" id="guess-input" class="guess-input" 
+                       placeholder="Type species, genus, family, or common name..." 
+                       autocomplete="off">
+                <div id="autocomplete-dropdown" class="autocomplete-dropdown"></div>
+            </div>
+            <button id="submit-guess-btn" class="btn btn-primary" disabled>Submit Guess</button>
+        </div>
+        
+        <div class="guess-help">
+            <p><strong>Tip:</strong> You can guess at any taxonomic level. Try "bear", "Ursidae", or "Ursus americanus"</p>
+        </div>
+    </div>
+
+    <!-- Result Modal -->
+    <div id="result-modal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="result-title">Result</h2>
+            </div>
+            <div class="modal-body">
+                <div class="result-score">
+                    <span class="points-earned" id="points-earned">+0 points</span>
+                    <span class="result-message" id="result-message"></span>
+                </div>
+                
+                <div class="result-details">
+                    <div class="correct-answer">
+                        <h3>Correct Answer:</h3>
+                        <p id="correct-answer-text"></p>
+                    </div>
+                    
+                    <div class="explanation">
+                        <h3>Your Score:</h3>
+                        <p id="explanation-text"></p>
+                    </div>
+                    
+                    <div id="fun-fact-section" class="fun-fact" style="display: none;">
+                        <h3>Fun Fact:</h3>
+                        <p id="fun-fact-text"></p>
+                    </div>
+                </div>
+                
+                <div class="result-progress">
+                    <p>Total Score: <span id="total-score-display"></span></p>
+                    <p id="questions-remaining"></p>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button id="continue-btn" class="btn btn-primary">Continue</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Game data from template
+const gameData = {
+    sessionId: '{{ session_id }}',
+    questionNum: {{ question_num }},
+    totalQuestions: {{ total_questions }},
+    images: {{ images | tojson }},
+    totalImages: {{ total_images }}
+};
+
+// Initialize game when page loads
+document.addEventListener('DOMContentLoaded', function() {
+    initializeGame();
+});
+
+let currentImageIndex = 0;
+let isPlaying = true;
+let playInterval = null;
+let selectedTaxonId = null;
+
+function initializeGame() {
+    // Set up image display
+    if (gameData.images && gameData.images.length > 0) {
+        displayImage(0);
+        startAutoPlay();
+    }
+    
+    // Set up controls
+    setupImageControls();
+    setupGuessInput();
+    setupSubmitButton();
+}
+
+function displayImage(index) {
+    if (index < 0 || index >= gameData.images.length) return;
+    
+    currentImageIndex = index;
+    const image = gameData.images[index];
+    const imageElement = document.getElementById('current-image');
+    const loadingElement = document.getElementById('image-loading');
+    
+    // Show loading
+    loadingElement.style.display = 'block';
+    imageElement.style.display = 'none';
+    
+    // Load image
+    imageElement.onload = function() {
+        loadingElement.style.display = 'none';
+        imageElement.style.display = 'block';
+    };
+    
+    imageElement.onerror = function() {
+        loadingElement.textContent = 'Failed to load image';
+    };
+    
+    imageElement.src = image.url;
+    
+    // Update counters
+    document.getElementById('image-counter').textContent = 
+        `Image ${index + 1} of ${gameData.totalImages}`;
+    
+    // Update navigation buttons
+    document.getElementById('prev-btn').disabled = (index === 0);
+    document.getElementById('next-btn').disabled = (index === gameData.images.length - 1);
+}
+
+function setupImageControls() {
+    document.getElementById('prev-btn').addEventListener('click', function() {
+        if (currentImageIndex > 0) {
+            displayImage(currentImageIndex - 1);
+        }
+    });
+    
+    document.getElementById('next-btn').addEventListener('click', function() {
+        if (currentImageIndex < gameData.images.length - 1) {
+            displayImage(currentImageIndex + 1);
+        }
+    });
+    
+    document.getElementById('play-pause-btn').addEventListener('click', function() {
+        if (isPlaying) {
+            pauseAutoPlay();
+        } else {
+            startAutoPlay();
+        }
+    });
+}
+
+function startAutoPlay() {
+    if (playInterval) clearInterval(playInterval);
+    
+    isPlaying = true;
+    document.getElementById('play-pause-btn').textContent = '⏸ Pause';
+    
+    playInterval = setInterval(function() {
+        let nextIndex = currentImageIndex + 1;
+        if (nextIndex >= gameData.images.length) {
+            nextIndex = 0; // Loop back to start
+        }
+        displayImage(nextIndex);
+    }, 1000); // 1 second per image
+}
+
+function pauseAutoPlay() {
+    if (playInterval) {
+        clearInterval(playInterval);
+        playInterval = null;
+    }
+    
+    isPlaying = false;
+    document.getElementById('play-pause-btn').textContent = '▶ Play';
+}
+
+function setupGuessInput() {
+    const input = document.getElementById('guess-input');
+    const dropdown = document.getElementById('autocomplete-dropdown');
+    let debounceTimer = null;
+    
+    input.addEventListener('input', function() {
+        const query = this.value.trim();
+        
+        // Clear previous timer
+        if (debounceTimer) clearTimeout(debounceTimer);
+        
+        if (query.length < 2) {
+            dropdown.style.display = 'none';
+            return;
+        }
+        
+        // Debounce the search
+        debounceTimer = setTimeout(function() {
+            searchTaxa(query);
+        }, 300);
+    });
+    
+    // Hide dropdown when clicking outside
+    document.addEventListener('click', function(e) {
+        if (!e.target.closest('.autocomplete-container')) {
+            dropdown.style.display = 'none';
+        }
+    });
+    
+    // Enable submit button when there's text
+    input.addEventListener('input', function() {
+        const submitBtn = document.getElementById('submit-guess-btn');
+        submitBtn.disabled = this.value.trim().length === 0;
+    });
+}
+
+function searchTaxa(query) {
+    fetch(`/autocomplete?q=${encodeURIComponent(query)}`)
+        .then(response => response.json())
+        .then(suggestions => {
+            displaySuggestions(suggestions);
+        })
+        .catch(error => {
+            console.error('Autocomplete error:', error);
+        });
+}
+
+function displaySuggestions(suggestions) {
+    const dropdown = document.getElementById('autocomplete-dropdown');
+    
+    if (suggestions.length === 0) {
+        dropdown.style.display = 'none';
+        return;
+    }
+    
+    dropdown.innerHTML = '';
+    
+    suggestions.forEach(function(suggestion) {
+        const item = document.createElement('div');
+        item.className = 'autocomplete-item';
+        
+        item.innerHTML = `
+            <div class="suggestion-name">${suggestion.name}</div>
+            <div class="suggestion-info">${suggestion.level}${suggestion.common_name ? ' • ' + suggestion.common_name : ''}</div>
+        `;
+        
+        item.addEventListener('click', function() {
+            selectSuggestion(suggestion);
+        });
+        
+        dropdown.appendChild(item);
+    });
+    
+    dropdown.style.display = 'block';
+}
+
+function selectSuggestion(suggestion) {
+    const input = document.getElementById('guess-input');
+    const dropdown = document.getElementById('autocomplete-dropdown');
+    
+    input.value = suggestion.name;
+    selectedTaxonId = suggestion.id;
+    dropdown.style.display = 'none';
+    
+    // Enable submit button
+    document.getElementById('submit-guess-btn').disabled = false;
+}
+
+function setupSubmitButton() {
+    document.getElementById('submit-guess-btn').addEventListener('click', function() {
+        submitGuess();
+    });
+    
+    // Also submit on Enter key
+    document.getElementById('guess-input').addEventListener('keypress', function(e) {
+        if (e.key === 'Enter' && !this.disabled) {
+            submitGuess();
+        }
+    });
+}
+
+function submitGuess() {
+    const guessInput = document.getElementById('guess-input');
+    const guessName = guessInput.value.trim();
+    
+    if (!guessName) return;
+    
+    // Disable submit button and pause auto-play
+    document.getElementById('submit-guess-btn').disabled = true;
+    pauseAutoPlay();
+    
+    showLoading();
+    
+    const payload = {
+        session_id: gameData.sessionId,
+        taxon_id: selectedTaxonId,
+        guess_name: guessName
+    };
+    
+    fetch('/submit_guess', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(payload)
+    })
+    .then(response => response.json())
+    .then(result => {
+        hideLoading();
+        displayResult(result);
+    })
+    .catch(error => {
+        hideLoading();
+        console.error('Error submitting guess:', error);
+        alert('Failed to submit guess. Please try again.');
+        document.getElementById('submit-guess-btn').disabled = false;
+    });
+}
+
+function displayResult(result) {
+    // Populate result modal
+    document.getElementById('points-earned').textContent = `+${result.points_earned} points`;
+    document.getElementById('result-message').textContent = result.message;
+    document.getElementById('correct-answer-text').textContent = result.correct_answer;
+    document.getElementById('explanation-text').textContent = result.explanation;
+    document.getElementById('total-score-display').textContent = result.total_score;
+    
+    // Show/hide fun fact
+    const funFactSection = document.getElementById('fun-fact-section');
+    if (result.fun_fact) {
+        document.getElementById('fun-fact-text').textContent = result.fun_fact;
+        funFactSection.style.display = 'block';
+    } else {
+        funFactSection.style.display = 'none';
+    }
+    
+    // Update questions remaining
+    if (result.is_game_complete) {
+        document.getElementById('questions-remaining').textContent = 'Game Complete!';
+        document.getElementById('continue-btn').textContent = 'View Final Results';
+    } else {
+        document.getElementById('questions-remaining').textContent = 
+            `${result.questions_remaining} questions remaining`;
+    }
+    
+    // Show modal
+    document.getElementById('result-modal').style.display = 'block';
+    
+    // Set up continue button
+    document.getElementById('continue-btn').onclick = function() {
+        if (result.is_game_complete) {
+            window.location.href = `/game_complete/${gameData.sessionId}`;
+        } else {
+            window.location.href = `/question/${gameData.sessionId}/${gameData.questionNum + 1}`;
+        }
+    };
+}
+</script>
+{% endblock %}

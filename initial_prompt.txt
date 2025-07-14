@@ -1,0 +1,32 @@
+I maintain a repository of several million images from wildlife cameras, at https://lila.science/category/camera-traps/ .  There are three publicly-accessible copies of each image, on GCP, AWS, and Azure.  All of these images are described in a large (~15GB) .csv file, with the following columns:
+
+dataset_name,url_gcp,url_aws,url_azure,image_id,sequence_id,location_id,frame_num,original_label,scientific_name,common_name,datetime,annotation_level,kingdom,phylum,subphylum,superclass,class,subclass,infraclass,superorder,order,suborder,infraorder,superfamily,family,subfamily,tribe,genus,subgenus,species,subspecies,variety
+
+This .csv file is available online, but for today, let's assume I'm working with it locally.  
+
+Each row in the .csv represents the occurrence of an entity in an image.  The URL columns represent the location of that image on the three different clouds; for a given image, the value of those columns differs only in the prefix.  The columns starting with "kingdom" represent a taxonomic wildlife identifier.  Not all rows have values in all of these columns; some rows represent non-wildlife images where all of these columns are blank.  The "original_label" and "common_name" columns are not very important; the canonical identifiers for which taxa are in each row are the columns starting with "kingdom" and ending with "variety".  Many of these may be blank for most rows.
+
+If multiple entities (typically multiple species) occur in the same image, an image may appear in multiple rows.
+
+The total number of unique taxa (i.e. the unique sets of values in the kingdom...variety columns) is on the order of "a few thousand".
+
+Wildlife camera trap images are usually captured in bursts, or sequences, of images, typically 3-10 images at a time.  This is what's captured in the "sequence_id" column: three images may have different URLs but the same sequence_id, this means that they appear in the same sequence, with their order within the sequence determined by the "frame_num" column.
+
+Today, I want to make a Web-based game that chooses a taxon at random, then chooses N sequences (e.g. N=4) that contain that taxon, and displays them to the user (e.g. advancing them slowly, like a video, and/or letting the user click next/previous buttons to move through the images).  The user has to guess the taxon, they might get 10 points for getting it exactly right, 5 points for the right genus, 3 points for the right family, etc.  I am flexible on the exact scoring system.  After the user makes a guess, they are told what the correct answer is and how many points they got.  I am flexible on the process for making guesses; it's not practical for the user to type taxonomic names into a text box, so my inclination is that guessing should be through a text box that provides some degree of autocompletion, by searching both the taxonomic columns and the "common_name" columns.
+
+The user might see M taxa in a "game" (e.g. M=10), and receive a "final score" at the end.  There should be no persistent logins.
+
+The total number of players at a time will probably be <5, so scalability is not a significant concern.
+
+My default plan is to deploy this on an Ubuntu Linux VM that I already have access to.  I am open to other approaches, but I am familiar with Ubuntu and I am already paying for that VM, so I would prefer not to incur additional hosting costs.
+
+My expectation is that I will have to move the information from that .csv file to a database.  I do not have a lot of database experience, so I am open to infrastructure recommendations.  The database will not grow often, so it's fine if we think of the database as static.  I would like to host it locally on the same VM that's running the same, so SQLite or MySQL might be appropriate, as opposed to a hosted DB service.  Populating the DB initially is part of the project.  The DB should exclude all the blank images, i.e. the images where all the taxonomy columns are empty, where the "common_name" is "empty".
+
+I will be testing and developing on a Windows machine using Ubuntu in WSL.
+
+For now, don't write code, just ask me at least three clarifying/preference questions.  Your goal is to write a detailed description and engineering work plan that I will provide to an AI coding agent (either Gemini CLI or Claude Code) for local implementation.  That agent will have access to the .csv file.
+
+Stretch goals:
+
+* On the page where we show the number of points assigned after a guess, show a fun fact about that taxa by asking Gemini for a fun fact.  I will provide a Gemini key that can live in an environment variable in the deployment environment.
+* I don't want a real login facility, but I might like to track the high score over time, like old-fashioned arcade games did, where if you achieved the highest score, you would be asked to enter your name or initials.

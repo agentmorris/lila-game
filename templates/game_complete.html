@@ -1,0 +1,252 @@
+{% extends "base.html" %}
+
+{% block title %}Game Complete - Wildlife Camera Trap Game{% endblock %}
+
+{% block content %}
+<div class="game-complete-page">
+    <div class="completion-header">
+        <h1 class="completion-title">🎉 Game Complete!</h1>
+        <div class="final-score">
+            <span class="score-label">Final Score:</span>
+            <span class="score-value">{{ results.total_score }}</span>
+            <span class="score-max">/ {{ results.max_possible_score }}</span>
+        </div>
+    </div>
+
+    <div class="results-summary">
+        <div class="summary-stats">
+            <div class="stat-card">
+                <div class="stat-number">{{ results.questions_answered }}</div>
+                <div class="stat-label">Questions</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number">{{ "%.1f"|format(results.average_score) }}</div>
+                <div class="stat-label">Average per Question</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number">{{ "%.0f"|format((results.total_score / results.max_possible_score) * 100) }}%</div>
+                <div class="stat-label">Accuracy</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Performance Message -->
+    <div class="performance-message">
+        {% set percentage = (results.total_score / results.max_possible_score) * 100 %}
+        {% if percentage >= 80 %}
+            <div class="message excellent">
+                <h2>🌟 Excellent Work!</h2>
+                <p>You're a wildlife identification expert! Your knowledge of animal taxonomy is impressive.</p>
+            </div>
+        {% elif percentage >= 60 %}
+            <div class="message good">
+                <h2>🎯 Great Job!</h2>
+                <p>You have solid wildlife identification skills. Keep exploring to improve even further!</p>
+            </div>
+        {% elif percentage >= 40 %}
+            <div class="message okay">
+                <h2>📚 Not Bad!</h2>
+                <p>You're on the right track! Try focusing on common animal families and their characteristics.</p>
+            </div>
+        {% else %}
+            <div class="message needs-work">
+                <h2>🌱 Keep Learning!</h2>
+                <p>Wildlife identification takes practice. Try starting with broader categories like families and orders.</p>
+            </div>
+        {% endif %}
+    </div>
+
+    <!-- Detailed Results -->
+    <div class="detailed-results">
+        <h2>Question Breakdown</h2>
+        <div class="results-list">
+            {% for question_result in results.question_results %}
+            <div class="result-item">
+                <div class="result-header">
+                    <span class="question-num">Q{{ question_result.question_num }}</span>
+                    <span class="points-earned">+{{ question_result.points }} pts</span>
+                </div>
+                <div class="result-details">
+                    <div class="your-guess">
+                        <strong>Your guess:</strong> {{ question_result.guess }}
+                    </div>
+                    <div class="correct-answer">
+                        <strong>Correct:</strong> {{ question_result.taxon.most_specific_name }}
+                        {% if question_result.taxon.common_name %}({{ question_result.taxon.common_name }}){% endif %}
+                    </div>
+                    <div class="explanation">{{ question_result.explanation }}</div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- High Score Section -->
+    {% if is_high_score %}
+    <div class="high-score-section">
+        <div class="high-score-banner">
+            <h2>🏆 High Score Achieved!</h2>
+            <p>Your score qualifies for the leaderboard. Enter your name to save your achievement!</p>
+        </div>
+        
+        <div class="high-score-form">
+            <input type="text" id="player-name-input" placeholder="Enter your name or initials" maxlength="20">
+            <button id="save-score-btn" class="btn btn-primary">Save High Score</button>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Current High Scores -->
+    {% if high_scores %}
+    <div class="current-high-scores">
+        <h2>Current High Scores</h2>
+        <div class="scores-table">
+            {% for score in high_scores %}
+            <div class="score-row {% if loop.index <= 3 %}top-three{% endif %}">
+                <span class="rank">{{ loop.index }}</span>
+                <span class="name">{{ score.player_name }}</span>
+                <span class="score">{{ score.score }} pts</span>
+                <span class="date">{{ score.game_date.strftime('%m/%d/%Y') if score.game_date else '' }}</span>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Action Buttons -->
+    <div class="action-buttons">
+        <button id="play-again-btn" class="btn btn-primary btn-large">
+            🎮 Play Again
+        </button>
+        <a href="{{ url_for('index') }}" class="btn btn-secondary">
+            🏠 Home
+        </a>
+        <a href="{{ url_for('high_scores') }}" class="btn btn-secondary">
+            🏆 View All High Scores
+        </a>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    setupHighScoreForm();
+    setupPlayAgainButton();
+    
+    {% if is_high_score %}
+    // Focus on name input if high score achieved
+    document.getElementById('player-name-input').focus();
+    {% endif %}
+});
+
+function setupHighScoreForm() {
+    const nameInput = document.getElementById('player-name-input');
+    const saveBtn = document.getElementById('save-score-btn');
+    
+    if (!nameInput || !saveBtn) return;
+    
+    // Enable save button when name is entered
+    nameInput.addEventListener('input', function() {
+        saveBtn.disabled = this.value.trim().length === 0;
+    });
+    
+    // Save on Enter key
+    nameInput.addEventListener('keypress', function(e) {
+        if (e.key === 'Enter' && this.value.trim().length > 0) {
+            saveHighScore();
+        }
+    });
+    
+    // Save on button click
+    saveBtn.addEventListener('click', saveHighScore);
+}
+
+function saveHighScore() {
+    const nameInput = document.getElementById('player-name-input');
+    const saveBtn = document.getElementById('save-score-btn');
+    const playerName = nameInput.value.trim();
+    
+    if (!playerName) {
+        alert('Please enter your name');
+        return;
+    }
+    
+    saveBtn.disabled = true;
+    saveBtn.textContent = 'Saving...';
+    
+    fetch('/save_high_score', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+            session_id: '{{ session_id }}',
+            player_name: playerName
+        })
+    })
+    .then(response => response.json())
+    .then(result => {
+        if (result.success) {
+            // Hide the high score form and show success message
+            document.querySelector('.high-score-section').innerHTML = `
+                <div class="high-score-success">
+                    <h2>✅ High Score Saved!</h2>
+                    <p>Congratulations, ${playerName}! Your score has been added to the leaderboard.</p>
+                </div>
+            `;
+            
+            // Refresh page to show updated high scores
+            setTimeout(() => {
+                window.location.reload();
+            }, 2000);
+        } else {
+            alert('Failed to save high score: ' + (result.error || 'Unknown error'));
+            saveBtn.disabled = false;
+            saveBtn.textContent = 'Save High Score';
+        }
+    })
+    .catch(error => {
+        console.error('Error saving high score:', error);
+        alert('Failed to save high score. Please try again.');
+        saveBtn.disabled = false;
+        saveBtn.textContent = 'Save High Score';
+    });
+}
+
+function setupPlayAgainButton() {
+    const playAgainBtn = document.getElementById('play-again-btn');
+    
+    if (playAgainBtn) {
+        playAgainBtn.addEventListener('click', function() {
+            startNewGame();
+        });
+    }
+}
+
+function startNewGame() {
+    showLoading();
+    
+    fetch('/start_game', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        hideLoading();
+        
+        if (data.error) {
+            alert('Error starting game: ' + data.error);
+        } else {
+            // Redirect to first question
+            window.location.href = `/question/${data.session_id}/1`;
+        }
+    })
+    .catch(error => {
+        hideLoading();
+        console.error('Error:', error);
+        alert('Failed to start game. Please try again.');
+    });
+}
+</script>
+{% endblock %}
