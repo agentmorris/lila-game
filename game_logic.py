@@ -25,10 +25,10 @@ SCORE_VALUES = {
     'infraclass': 1,
     'subclass': 1,
     'class': 1,
-    'superclass': 1,
-    'subphylum': 1,
-    'phylum': 1,
-    'kingdom': 1
+    'superclass': 0,
+    'subphylum': 0,
+    'phylum': 0,
+    'kingdom': 0
 }
 
 # Taxonomic hierarchy (most specific to least specific)

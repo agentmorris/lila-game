@@ -22,17 +22,22 @@ class Taxa:
     
     @staticmethod
     def get_random_taxa(count: int) -> List[Dict]:
-        """Get random taxa for a game."""
+        """Get random taxa for a game (family level or lower only)."""
         conn = get_db_connection()
         cursor = conn.cursor()
         
-        # Get random taxa that have sequences
-        cursor.execute('''
+        # Define acceptable taxonomic levels (family and below)
+        acceptable_levels = ['variety', 'subspecies', 'species', 'subgenus', 'genus', 'tribe', 'subfamily', 'family']
+        level_placeholders = ','.join(['?'] * len(acceptable_levels))
+        
+        # Get random taxa that have sequences and are at family level or lower
+        cursor.execute(f'''
             SELECT DISTINCT t.* FROM taxa t
             JOIN sequences s ON t.id = s.taxon_id
+            WHERE t.most_specific_level IN ({level_placeholders})
             ORDER BY RANDOM()
             LIMIT ?
-        ''', (count,))
+        ''', acceptable_levels + [count])
         
         taxa = [dict(row) for row in cursor.fetchall()]
         conn.close()
