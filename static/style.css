@@ -770,7 +770,7 @@ body {
 }
 
 .page-header {
-    background: linear-gradient(135deg, #f39c12 0%, #e67e22 100%);
+    background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
     color: white;
     text-align: center;
     padding: 3rem 2rem;

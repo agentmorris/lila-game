@@ -1,11 +1,11 @@
 {% extends "base.html" %}
 
-{% block title %}High Scores - Wildlife Camera Trap Game{% endblock %}
+{% block title %}High Scores - The LILA Game{% endblock %}
 
 {% block content %}
 <div class="high-scores-page">
     <div class="page-header">
-        <h1 class="page-title">🏆 High Scores</h1>
+        <h1 class="page-title">🏆 High scores</h1>
         <p class="page-subtitle">Top wildlife identification experts</p>
     </div>
 
@@ -60,17 +60,17 @@
         <div class="stats-grid">
             <div class="stat-card">
                 <div class="stat-number">{{ high_scores[0].score if high_scores else 0 }}</div>
-                <div class="stat-label">Highest Score</div>
+                <div class="stat-label">Highest score</div>
             </div>
             {% if high_scores|length > 1 %}
             <div class="stat-card">
                 <div class="stat-number">{{ "%.1f"|format((high_scores|sum(attribute='score')) / high_scores|length) }}</div>
-                <div class="stat-label">Average Score</div>
+                <div class="stat-label">Average score</div>
             </div>
             {% endif %}
             <div class="stat-card">
                 <div class="stat-number">{{ high_scores|length }}</div>
-                <div class="stat-label">Total Players</div>
+                <div class="stat-label">Total players</div>
             </div>
         </div>
     </div>
@@ -79,28 +79,28 @@
     <!-- No scores yet -->
     <div class="no-scores">
         <div class="no-scores-icon">🎯</div>
-        <h2>No High Scores Yet</h2>
+        <h2>No high scores yet</h2>
         <p>Be the first to set a high score! Start a game and show off your wildlife identification skills.</p>
     </div>
     {% endif %}
 
     <!-- Challenge Section -->
     <div class="challenge-section">
-        <h2>Think You Can Beat These Scores?</h2>
+        <h2>Think you can beat these scores?</h2>
         <div class="challenge-info">
             <div class="challenge-tips">
-                <h3>Tips for High Scores:</h3>
+                <h3>Tips for high scores</h3>
                 <ul>
-                    <li><strong>Learn Animal Families:</strong> Knowing major families like Felidae (cats) or Cervidae (deer) can earn you 3 points even if you don't know the exact species</li>
-                    <li><strong>Use Scientific Names:</strong> Try both common names and scientific names in your guesses</li>
-                    <li><strong>Look for Distinctive Features:</strong> Antlers, tail shapes, body size, and coloring are key identification clues</li>
-                    <li><strong>Consider Habitat:</strong> The environment can give hints about what animals might be present</li>
-                    <li><strong>Practice Makes Perfect:</strong> The more you play, the better you'll get at recognizing wildlife patterns</li>
+                    <li><strong>Learn animal families:</strong> Knowing major families like Felidae (cats) or Cervidae (deer) can earn you 3 points even if you don't know the exact species</li>
+                    <li><strong>Use any names:</strong> Try both common names and scientific names in your guesses</li>
+                    <li><strong>Look for distinctive features:</strong> Antlers, tail shapes, body size, and coloring are key identification clues</li>
+                    <li><strong>Consider habitat:</strong> The environment can give hints about what animals might be present</li>
+                    <li><strong>Practice makes perfect:</strong> The more you play, the better you'll get at recognizing wildlife patterns</li>
                 </ul>
             </div>
             
             <div class="scoring-reminder">
-                <h3>Scoring System:</h3>
+                <h3>Scoring system</h3>
                 <div class="score-breakdown">
                     <div class="score-item">
                         <span class="points">10 pts</span>
@@ -126,10 +126,10 @@
     <!-- Action Buttons -->
     <div class="action-buttons">
         <button id="start-game-btn" class="btn btn-primary btn-large">
-            🎮 Challenge the Leaderboard
+            🎮 Challenge the leaderboard
         </button>
         <a href="{{ url_for('index') }}" class="btn btn-secondary">
-            🏠 Back to Home
+            🏠 Home
         </a>
     </div>
 </div>

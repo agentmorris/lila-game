@@ -1,13 +1,13 @@
 {% extends "base.html" %}
 
-{% block title %}Game Complete - Wildlife Camera Trap Game{% endblock %}
+{% block title %}Game Complete - The LILA Game{% endblock %}
 
 {% block content %}
 <div class="game-complete-page">
     <div class="completion-header">
-        <h1 class="completion-title">🎉 Game Complete!</h1>
+        <h1 class="completion-title">🎉 Game complete!</h1>
         <div class="final-score">
-            <span class="score-label">Final Score:</span>
+            <span class="score-label">Final score:</span>
             <span class="score-value">{{ results.total_score }}</span>
             <span class="score-max">/ {{ results.max_possible_score }}</span>
         </div>
@@ -21,7 +21,7 @@
             </div>
             <div class="stat-card">
                 <div class="stat-number">{{ "%.1f"|format(results.average_score) }}</div>
-                <div class="stat-label">Average per Question</div>
+                <div class="stat-label">Average per question</div>
             </div>
             <div class="stat-card">
                 <div class="stat-number">{{ "%.0f"|format((results.total_score / results.max_possible_score) * 100) }}%</div>
@@ -85,13 +85,13 @@
     {% if is_high_score %}
     <div class="high-score-section">
         <div class="high-score-banner">
-            <h2>🏆 High Score Achieved!</h2>
+            <h2>🏆 High score achieved!</h2>
             <p>Your score qualifies for the leaderboard. Enter your name to save your achievement!</p>
         </div>
         
         <div class="high-score-form">
             <input type="text" id="player-name-input" placeholder="Enter your name or initials" maxlength="20">
-            <button id="save-score-btn" class="btn btn-primary">Save High Score</button>
+            <button id="save-score-btn" class="btn btn-primary">Save high score</button>
         </div>
     </div>
     {% endif %}
@@ -99,7 +99,7 @@
     <!-- Current High Scores -->
     {% if high_scores %}
     <div class="current-high-scores">
-        <h2>Current High Scores</h2>
+        <h2>Current high scores</h2>
         <div class="scores-table">
             {% for score in high_scores %}
             <div class="score-row {% if loop.index <= 3 %}top-three{% endif %}">
@@ -116,13 +116,13 @@
     <!-- Action Buttons -->
     <div class="action-buttons">
         <button id="play-again-btn" class="btn btn-primary btn-large">
-            🎮 Play Again
+            🎮 Play again
         </button>
         <a href="{{ url_for('index') }}" class="btn btn-secondary">
             🏠 Home
         </a>
         <a href="{{ url_for('high_scores') }}" class="btn btn-secondary">
-            🏆 View All High Scores
+            🏆 View all high scores
         </a>
     </div>
 </div>

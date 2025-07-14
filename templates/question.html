@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}Question {{ question_num }} - Wildlife Camera Trap Game{% endblock %}
+{% block title %}Question {{ question_num }} - The LILA Game{% endblock %}
 
 {% block content %}
 <div class="question-page">
@@ -77,12 +77,12 @@
                 
                 <div class="result-details">
                     <div class="correct-answer">
-                        <h3>Correct Answer:</h3>
+                        <h3>Correct answer</h3>
                         <p id="correct-answer-text"></p>
                     </div>
                     
                     <div class="explanation">
-                        <h3>Your Score:</h3>
+                        <h3>Your result</h3>
                         <p id="explanation-text"></p>
                     </div>
                     
@@ -93,7 +93,7 @@
                 </div>
                 
                 <div class="result-progress">
-                    <p>Total Score: <span id="total-score-display"></span></p>
+                    <p>Total score: <span id="total-score-display"></span></p>
                     <p id="questions-remaining"></p>
                 </div>
             </div>
@@ -397,7 +397,7 @@ function displayResult(result) {
     // Populate result modal
     document.getElementById('points-earned').textContent = `+${result.points_earned} points`;
     document.getElementById('result-message').textContent = result.message;
-    document.getElementById('correct-answer-text').textContent = result.correct_answer;
+    document.getElementById('correct-answer-text').innerHTML = result.correct_answer;
     document.getElementById('explanation-text').textContent = result.explanation;
     document.getElementById('total-score-display').textContent = result.total_score;
     

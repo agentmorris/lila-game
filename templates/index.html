@@ -1,11 +1,11 @@
 {% extends "base.html" %}
 
-{% block title %}Wildlife Camera Trap Game - Home{% endblock %}
+{% block title %}The LILA Game - Home{% endblock %}
 
 {% block content %}
 <div class="home-page">
     <div class="hero-section">
-        <h1 class="hero-title">Wildlife Camera Trap Game</h1>
+        <h1 class="hero-title">The LILA Game</h1>
         <p class="hero-subtitle">Test your wildlife identification skills with real camera trap images!</p>
         
         {% if ready_to_play %}
@@ -23,7 +23,7 @@
     <div class="game-info">
         <div class="info-grid">
             <div class="info-card">
-                <h3>How to Play</h3>
+                <h3>How to play</h3>
                 <ul>
                     <li>View sequences of wildlife camera images</li>
                     <li>Guess the animal species, genus, family, etc.</li>
@@ -34,7 +34,7 @@
             </div>
 
             <div class="info-card">
-                <h3>Scoring System</h3>
+                <h3>Scoring system</h3>
                 <div class="scoring-info">
                     <div class="score-item">
                         <span class="score-points">10 pts</span>
@@ -49,8 +49,12 @@
                         <span class="score-desc">Family</span>
                     </div>
                     <div class="score-item">
+                        <span class="score-points">2 pts</span>
+                        <span class="score-desc">Order</span>
+                    </div>
+                    <div class="score-item">
                         <span class="score-points">1 pt</span>
-                        <span class="score-desc">Order and above</span>
+                        <span class="score-desc">Class and above</span>
                     </div>
                 </div>
             </div>
@@ -79,7 +83,7 @@
 
     {% if high_scores %}
     <div class="high-scores-preview">
-        <h2>Top Scores</h2>
+        <h2>Top scores</h2>
         <div class="scores-list">
             {% for score in high_scores[:5] %}
             <div class="score-entry">
@@ -89,27 +93,27 @@
             </div>
             {% endfor %}
         </div>
-        <a href="{{ url_for('high_scores') }}" class="btn btn-secondary">View All High Scores</a>
+        <a href="{{ url_for('high_scores') }}" class="btn btn-secondary">View all high scores</a>
     </div>
     {% endif %}
 
     <div class="tips-section">
-        <h2>Tips for Success</h2>
+        <h2>Tips for success</h2>
         <div class="tips-grid">
             <div class="tip-card">
-                <h4>🔍 Look for Details</h4>
+                <h4>🔍 Look for details</h4>
                 <p>Pay attention to body shape, size, coloring, and distinctive features like antlers, tails, or ears.</p>
             </div>
             <div class="tip-card">
-                <h4>🌍 Consider Habitat</h4>
+                <h4>🌍 Consider habitat</h4>
                 <p>The environment can give clues about what animals might be present in that ecosystem.</p>
             </div>
             <div class="tip-card">
-                <h4>📚 Use Scientific Names</h4>
+                <h4>📚 Use any names</h4>
                 <p>Search using both common names (like "deer") and scientific names (like "Cervidae") for better matches.</p>
             </div>
             <div class="tip-card">
-                <h4>🎯 Start Broad</h4>
+                <h4>🎯 Start broad</h4>
                 <p>If you're unsure of the exact species, try guessing the family or genus - you'll still earn points!</p>
             </div>
         </div>

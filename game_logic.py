@@ -20,7 +20,7 @@ SCORE_VALUES = {
     'superfamily': 2,
     'infraorder': 2,
     'suborder': 2,
-    'order': 1,
+    'order': 2,
     'superorder': 1,
     'infraclass': 1,
     'subclass': 1,
@@ -120,25 +120,25 @@ def get_correct_answer_display(taxon: Dict) -> str:
     """Get a formatted display string for the correct answer."""
     
     most_specific_name = taxon.get('most_specific_name', 'Unknown')
-    most_specific_level = taxon.get('most_specific_level', 'unknown')
     common_name = taxon.get('common_name')
     
-    display = f"{most_specific_name} ({most_specific_level.title()})"
-    
+    # Start with common name (scientific name)
     if common_name:
-        display += f" - {common_name}"
+        display = f"{common_name} ({most_specific_name})"
+    else:
+        display = most_specific_name
     
-    # Add some taxonomic context
+    # Add taxonomic context on separate lines
     path = get_taxonomic_path(taxon)
-    context_levels = ['family', 'order', 'class']
-    context_parts = []
+    context_lines = []
     
-    for level in context_levels:
-        if level in path and level != most_specific_level:
-            context_parts.append(f"{level.title()}: {path[level]}")
+    # Add class, order, family in that order (if available)
+    for level in ['class', 'order', 'family']:
+        if level in path and path[level]:
+            context_lines.append(f"{level}: {path[level]}")
     
-    if context_parts:
-        display += f" ({', '.join(context_parts)})"
+    if context_lines:
+        display += "<br>" + "<br>".join(context_lines)
     
     return display
 
@@ -226,9 +226,9 @@ def format_score_result(points: int, matching_level: str, explanation: str,
     if points >= 10:
         result['message'] = "Excellent! Perfect identification!"
     elif points >= 5:
-        result['message'] = "Great job! Close identification!"
+        result['message'] = f"Great job! You guessed the correct {matching_level}!"
     elif points >= 3:
-        result['message'] = "Good work! You're on the right track!"
+        result['message'] = f"Good work! You guessed the correct {matching_level}!"
     elif points >= 1:
         result['message'] = f"Not bad! You got the {matching_level}!"
     else:
