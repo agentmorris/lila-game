@@ -5,7 +5,62 @@ Game logic and scoring for Wildlife Camera Trap Game.
 
 import os
 import requests
+import threading
 from typing import Dict, Optional, Tuple
+from dotenv import load_dotenv
+
+# Load environment variables from .env file if it exists
+load_dotenv()
+
+def get_gemini_api_key() -> Optional[str]:
+    """Get Gemini API key from multiple sources (environment variable, .env file, or .gemini-key file)."""
+    
+    # Try environment variable first (highest priority)
+    api_key = os.getenv('GEMINI_API_KEY')
+    if api_key:
+        print(f"DEBUG: Found API key from environment variable (length: {len(api_key)})")
+        return api_key.strip()
+    
+    # Try .gemini-key file
+    try:
+        with open('.gemini-key', 'r') as f:
+            api_key = f.read().strip()
+            if api_key:
+                print(f"DEBUG: Found API key from .gemini-key file (length: {len(api_key)})")
+                return api_key
+    except FileNotFoundError:
+        print("DEBUG: .gemini-key file not found")
+    except Exception as e:
+        print(f"Warning: Error reading .gemini-key file: {e}")
+    
+    print("DEBUG: No API key found in any source")
+    return None
+
+def get_gemini_model_name() -> str:
+    """Get Gemini model name from multiple sources (environment variable, .env file, or .gemini-config file)."""
+    
+    # Try environment variable first (highest priority)
+    model_name = os.getenv('GEMINI_MODEL_NAME')
+    if model_name:
+        print(f"DEBUG: Found model name from environment variable: {model_name}")
+        return model_name.strip()
+    
+    # Try .gemini-config file
+    try:
+        with open('.gemini-config', 'r') as f:
+            model_name = f.read().strip()
+            if model_name:
+                print(f"DEBUG: Found model name from .gemini-config file: {model_name}")
+                return model_name
+    except FileNotFoundError:
+        print("DEBUG: .gemini-config file not found, using default")
+    except Exception as e:
+        print(f"Warning: Error reading .gemini-config file: {e}")
+    
+    # Default model
+    default_model = "gemini-2.5-pro"
+    print(f"DEBUG: Using default model name: {default_model}")
+    return default_model
 
 # Scoring system - points awarded by taxonomic level
 SCORE_VALUES = {
@@ -145,8 +200,9 @@ def get_correct_answer_display(taxon: Dict) -> str:
 def get_fun_fact(taxon: Dict) -> Optional[str]:
     """Get a fun fact about the taxon using Gemini API."""
     
-    api_key = os.getenv('GEMINI_API_KEY')
+    api_key = get_gemini_api_key()
     if not api_key:
+        print("DEBUG: get_fun_fact - No API key available")
         return None
     
     # Determine what to ask about
@@ -154,14 +210,17 @@ def get_fun_fact(taxon: Dict) -> Optional[str]:
     common_name = taxon.get('common_name')
     
     if not most_specific_name:
+        print("DEBUG: get_fun_fact - No most_specific_name available")
         return None
     
     # Construct query
     query_name = common_name if common_name else most_specific_name
+    print(f"DEBUG: get_fun_fact - Requesting fact for: {query_name}")
     
     try:
         # Use Gemini API to get fun fact
-        url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key={api_key}"
+        model_name = get_gemini_model_name()
+        url = f"https://generativelanguage.googleapis.com/v1beta/models/{model_name}:generateContent?key={api_key}"
         
         prompt = f"Give me one interesting, brief fun fact about {query_name}. Keep it to 1-2 sentences and focus on behavior, habitat, or unique characteristics. Do not mention taxonomy or classification."
         
@@ -175,17 +234,98 @@ def get_fun_fact(taxon: Dict) -> Optional[str]:
             "Content-Type": "application/json"
         }
         
-        response = requests.post(url, json=payload, headers=headers, timeout=10)
+        response = requests.post(url, json=payload, headers=headers, timeout=20)
+        print(f"DEBUG: get_fun_fact - API response status: {response.status_code}")
         
         if response.status_code == 200:
             data = response.json()
+            print(f"DEBUG: get_fun_fact - Response data keys: {list(data.keys())}")
             if 'candidates' in data and len(data['candidates']) > 0:
                 text = data['candidates'][0]['content']['parts'][0]['text']
+                print(f"DEBUG: get_fun_fact - Success: {text[:100]}...")
                 return text.strip()
+            else:
+                print("DEBUG: get_fun_fact - No candidates in response")
+        else:
+            print(f"DEBUG: get_fun_fact - API error status {response.status_code}: {response.text}")
         
     except Exception as e:
-        print(f"Error getting fun fact: {e}")
+        print(f"ERROR: get_fun_fact - Exception occurred: {e}")
+        import traceback
+        traceback.print_exc()
     
+    print("DEBUG: get_fun_fact - Returning None")
+    return None
+
+def get_hint(taxon: Dict) -> Optional[str]:
+    """Get a hint about the taxon using Gemini API without revealing taxonomic names."""
+    
+    api_key = get_gemini_api_key()
+    if not api_key:
+        print("DEBUG: get_hint - No API key available")
+        return None
+    
+    # Determine what to ask about
+    most_specific_name = taxon.get('most_specific_name')
+    common_name = taxon.get('common_name')
+    most_specific_level = taxon.get('most_specific_level', 'species')
+    
+    if not most_specific_name:
+        print("DEBUG: get_hint - No most_specific_name available")
+        return None
+    
+    # Use scientific name for more accurate results
+    query_name = most_specific_name
+    print(f"DEBUG: get_hint - Requesting hint for: {query_name}")
+    
+    try:
+        # Use Gemini API to get hint
+        model_name = get_gemini_model_name()
+        url = f"https://generativelanguage.googleapis.com/v1beta/models/{model_name}:generateContent?key={api_key}"
+        
+        prompt = f"""The user is looking at an image of {query_name} and trying to guess what it is. Provide an interesting fact about this taxon that will help them identify it, but follow these rules strictly:
+
+1. DO NOT use the scientific name ({query_name})
+2. DO NOT use the common name if it exists
+3. DO NOT mention the name of any parent taxonomic groups (family, order, class names)
+4. DO provide distinctive physical features, behaviors, or characteristics
+5. You CAN reference size comparisons to common objects or general terms like "largest in its group"
+6. Keep it to 1-2 sentences
+7. Make it helpful for identification
+
+For example, instead of saying "this is the largest cat species" say "this is the largest species in its family" or describe distinctive features like stripe patterns, body size, or unique behaviors."""
+        
+        payload = {
+            "contents": [{
+                "parts": [{"text": prompt}]
+            }]
+        }
+        
+        headers = {
+            "Content-Type": "application/json"
+        }
+        
+        response = requests.post(url, json=payload, headers=headers, timeout=20)
+        print(f"DEBUG: get_hint - API response status: {response.status_code}")
+        
+        if response.status_code == 200:
+            data = response.json()
+            print(f"DEBUG: get_hint - Response data keys: {list(data.keys())}")
+            if 'candidates' in data and len(data['candidates']) > 0:
+                text = data['candidates'][0]['content']['parts'][0]['text']
+                print(f"DEBUG: get_hint - Success: {text[:100]}...")
+                return text.strip()
+            else:
+                print("DEBUG: get_hint - No candidates in response")
+        else:
+            print(f"DEBUG: get_hint - API error status {response.status_code}: {response.text}")
+        
+    except Exception as e:
+        print(f"ERROR: get_hint - Exception occurred: {e}")
+        import traceback
+        traceback.print_exc()
+    
+    print("DEBUG: get_hint - Returning None")
     return None
 
 def get_scoring_explanation() -> str:
@@ -246,12 +386,75 @@ class GameSession:
         self.total_score = 0
         self.question_results = []
         self.questions_per_game = questions_per_game
+        self.fun_facts_cache = {}  # Cache for pre-fetched fun facts
+        self.hints_cache = {}  # Cache for hints
+        self.current_fun_fact_request = None  # Track current background request
+        self.fun_fact_fetch_index = 0  # Track which question we're fetching fun facts for
+        
+        # Start sequential fun fact fetching in background
+        self._start_sequential_fun_fact_fetching()
     
     def get_current_taxon(self) -> Optional[Dict]:
         """Get the taxon for the current question."""
         if self.current_question < len(self.taxa_list):
             return self.taxa_list[self.current_question]
         return None
+    
+    def _start_sequential_fun_fact_fetching(self):
+        """Start sequential fun fact fetching in background."""
+        def sequential_fetcher():
+            try:
+                for question_index in range(len(self.taxa_list)):
+                    # Check if we should stop (game might be over)
+                    if question_index >= len(self.taxa_list):
+                        break
+                        
+                    taxon = self.taxa_list[question_index]
+                    print(f"DEBUG: sequential_fetcher - Starting fetch for question {question_index}")
+                    
+                    # Store current request info
+                    self.fun_fact_fetch_index = question_index
+                    
+                    try:
+                        fun_fact = get_fun_fact(taxon)
+                        self.fun_facts_cache[question_index] = fun_fact
+                        print(f"DEBUG: sequential_fetcher - Cached fun fact for question {question_index}: {'✓' if fun_fact else '✗'}")
+                    except Exception as e:
+                        print(f"ERROR: sequential_fetcher - Failed to fetch fun fact for question {question_index}: {e}")
+                        # Continue to next question on error
+                        continue
+                        
+                print("DEBUG: sequential_fetcher - Completed all fun fact fetching")
+                        
+            except Exception as e:
+                print(f"ERROR: sequential_fetcher - Unexpected error: {e}")
+                import traceback
+                traceback.print_exc()
+                
+        # Start the sequential fetcher thread
+        self.current_fun_fact_request = threading.Thread(target=sequential_fetcher, daemon=True)
+        self.current_fun_fact_request.start()
+        print("DEBUG: _start_sequential_fun_fact_fetching - Started sequential fetcher thread")
+    
+    def get_hint(self) -> Optional[str]:
+        """Get a hint for the current question."""
+        current_taxon = self.get_current_taxon()
+        if not current_taxon:
+            print("DEBUG: GameSession.get_hint - No current taxon available")
+            return None
+            
+        # Check cache first
+        if self.current_question in self.hints_cache:
+            hint = self.hints_cache[self.current_question]
+            print(f"DEBUG: GameSession.get_hint - Using cached hint for question {self.current_question}: {'✓' if hint else '✗'}")
+            return hint
+        
+        # Generate hint
+        print(f"DEBUG: GameSession.get_hint - Generating new hint for question {self.current_question}")
+        hint = get_hint(current_taxon)
+        self.hints_cache[self.current_question] = hint
+        print(f"DEBUG: GameSession.get_hint - Generated hint: {'✓' if hint else '✗'}")
+        return hint
     
     def submit_answer(self, guess_taxon: Dict, guess_name: str) -> Dict:
         """Submit an answer and calculate score."""
@@ -269,10 +472,11 @@ class GameSession:
         # Get correct answer display
         correct_answer = get_correct_answer_display(current_taxon)
         
-        # Get fun fact
-        fun_fact = get_fun_fact(current_taxon)
+        # Get fun fact (use cached version if available, don't wait if not ready)
+        fun_fact = self.fun_facts_cache.get(self.current_question)
+        print(f"DEBUG: submit_answer - Fun fact for question {self.current_question}: {'cached' if fun_fact is not None else 'not available'}")
         
-        # Format result
+        # Format result (never wait for fun fact)
         result = format_score_result(points, level, explanation, correct_answer, fun_fact)
         
         # Update session state

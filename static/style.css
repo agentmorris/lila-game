@@ -491,6 +491,36 @@ body {
     color: #7f8c8d;
 }
 
+.button-group {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+.hint-section {
+    background: #e8f4f8;
+    border: 1px solid #3498db;
+    border-radius: 0.5rem;
+    padding: 1rem;
+    margin: 1rem 0;
+    max-width: 600px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.hint-content h4 {
+    color: #2c3e50;
+    margin-bottom: 0.5rem;
+    font-size: 1.1rem;
+}
+
+.hint-content p {
+    margin: 0;
+    color: #34495e;
+    line-height: 1.5;
+}
+
 .guess-help {
     text-align: center;
     margin-top: 1rem;

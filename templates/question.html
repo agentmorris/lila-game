@@ -55,7 +55,18 @@
                        autocomplete="off">
                 <div id="autocomplete-dropdown" class="autocomplete-dropdown"></div>
             </div>
-            <button id="submit-guess-btn" class="btn btn-primary" disabled>Submit Guess</button>
+            <div class="button-group">
+                <button id="submit-guess-btn" class="btn btn-primary" disabled>Submit Guess</button>
+                <button id="hint-btn" class="btn btn-secondary">💡 Get Hint</button>
+            </div>
+        </div>
+        
+        <!-- Hint Display -->
+        <div id="hint-section" class="hint-section" style="display: none;">
+            <div class="hint-content">
+                <h4>💡 Hint</h4>
+                <p id="hint-text"></p>
+            </div>
         </div>
         
         <div class="guess-help">
@@ -139,6 +150,7 @@ function initializeGame() {
     setupImageControls();
     setupGuessInput();
     setupSubmitButton();
+    setupHintButton();
 }
 
 function preloadAllImages() {
@@ -355,6 +367,60 @@ function setupSubmitButton() {
     });
 }
 
+function setupHintButton() {
+    document.getElementById('hint-btn').addEventListener('click', function() {
+        getHint();
+    });
+}
+
+function getHint() {
+    const hintBtn = document.getElementById('hint-btn');
+    const hintSection = document.getElementById('hint-section');
+    const hintText = document.getElementById('hint-text');
+    
+    // Disable button and show loading
+    hintBtn.disabled = true;
+    hintBtn.textContent = '💡 Loading...';
+    
+    const payload = {
+        session_id: gameData.sessionId
+    };
+    
+    fetch('/get_hint', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(payload)
+    })
+    .then(response => response.json())
+    .then(result => {
+        if (result.error) {
+            hintText.textContent = 'Sorry, no hint available for this question.';
+        } else if (result.has_hint && result.hint) {
+            hintText.textContent = result.hint;
+        } else {
+            hintText.textContent = 'No hint available for this question.';
+        }
+        
+        // Show hint section
+        hintSection.style.display = 'block';
+        
+        // Update button
+        hintBtn.textContent = '💡 Hint Used';
+        // Keep button disabled after use
+    })
+    .catch(error => {
+        console.error('Error getting hint:', error);
+        hintText.textContent = 'Failed to get hint. Please try again.';
+        hintSection.style.display = 'block';
+        
+        // Re-enable button on error
+        hintBtn.disabled = false;
+        hintBtn.textContent = '💡 Get Hint';
+    });
+}
+
 function submitGuess() {
     const guessInput = document.getElementById('guess-input');
     const guessName = guessInput.value.trim();
@@ -403,6 +469,7 @@ function displayResult(result) {
     
     // Show/hide fun fact
     const funFactSection = document.getElementById('fun-fact-section');
+    
     if (result.fun_fact) {
         document.getElementById('fun-fact-text').textContent = result.fun_fact;
         funFactSection.style.display = 'block';

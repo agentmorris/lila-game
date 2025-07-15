@@ -193,6 +193,29 @@ def submit_guess():
         print(f"Error processing guess: {e}")
         return jsonify({'error': 'Failed to process guess'}), 500
 
+@app.route('/get_hint', methods=['POST'])
+def get_hint():
+    """Get a hint for the current question."""
+    
+    data = request.get_json()
+    session_id = data.get('session_id')
+    
+    # Get game session
+    game_session = game_sessions.get(session_id)
+    if not game_session:
+        return jsonify({'error': 'Invalid session'}), 400
+    
+    try:
+        hint = game_session.get_hint()
+        return jsonify({
+            'hint': hint,
+            'has_hint': hint is not None
+        })
+        
+    except Exception as e:
+        print(f"Error getting hint: {e}")
+        return jsonify({'error': 'Failed to get hint'}), 500
+
 @app.route('/result/<session_id>/<int:question_num>')
 def result(session_id, question_num):
     """Display result for a specific question (if needed as separate page)."""

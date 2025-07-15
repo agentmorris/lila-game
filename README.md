@@ -1,6 +1,19 @@
-# Wildlife Camera Trap Game
+# The LILA Game
 
-A web-based guessing game where users identify wildlife from camera trap image sequences.
+## Overview
+
+The LILA Game is an interactive web-based wildlife identification game that uses real camera trap images from conservation research projects. Players view sequences of wildlife images and challenge themselves to identify the animals at various taxonomic levels - from species to family to order.
+
+**Key Features:**
+- Real camera trap image sequences from wildlife research
+- Hierarchical scoring system (10 points for species, 5 for genus, 3 for family, etc.)
+- Autocomplete search supporting both scientific and common names
+- High score leaderboard
+- Responsive web interface optimized for learning
+
+The game serves as both an educational tool for wildlife identification and a fun way to test your knowledge of animal taxonomy. Whether you're a wildlife enthusiast, student, or researcher, the game adapts to your knowledge level - you can guess broadly (family) or specifically (species) and still earn points.
+
+Built using real data from camera trap research projects, this game connects players with ongoing wildlife conservation efforts while building taxonomic knowledge and identification skills.
 
 ## Quick Start
 
@@ -132,16 +145,36 @@ gunicorn -w 4 -b 0.0.0.0:8000 app:app
 - 4 worker processes
 - Better performance and stability
 
-### Optional: Gemini API Setup
+### AI Features Setup (Optional)
 
-For wildlife fun facts feature:
+For hints and fun facts features:
 
-1. **Get Gemini API key** from Google AI Studio
-2. **Set environment variable**:
+1. **Get Gemini API key** from [Google AI Studio](https://makersuite.google.com/app/apikey)
+
+2. **Provide the API key** using one of these methods (in order of priority):
+
+   **Option A: Environment Variable**
    ```bash
    export GEMINI_API_KEY="your-api-key-here"
    ```
-3. **Restart the application** - fun facts will now appear after each guess
+
+   **Option B: .env File**
+   Create a `.env` file in the project root:
+   ```
+   GEMINI_API_KEY=your-api-key-here
+   ```
+
+   **Option C: .gemini-key File**
+   Create a `.gemini-key` file in the project root:
+   ```
+   your-api-key-here
+   ```
+
+3. **Restart the application** - AI features will now be available:
+   - **Hints**: Click the "💡 Get Hint" button during gameplay for identification clues
+   - **Fun Facts**: Automatically generated facts appear after each correct identification
+
+**Note**: Add `.env` and `.gemini-key` to your `.gitignore` file to avoid committing API keys to version control.
 
 ## Configuration Options
 
@@ -290,3 +323,48 @@ For issues with this implementation:
 4. Check that you have sufficient disk space and memory
 
 The system is designed to be simple and robust, but wildlife camera trap data can be complex. If you encounter issues with your specific dataset, the most common cause is unexpected data formatting in the CSV file.
+
+## Next Steps
+
+The following features would enhance the game experience and are planned for future development:
+
+### Easy & High Impact
+- **Game Customization**: Allow users to choose number of questions (5, 10, 15, 20) before starting
+- **Difficulty Levels**: "Species Only" vs "All Levels" modes (restrict to species-level targets vs allow family/genus)
+- **Session Statistics**: Track personal stats in localStorage (games played, average score, best score, favorite taxa)
+- **Simple Achievements**: "First Perfect Game", "10 Games Played", "Wildlife Expert" (avg >7 pts/question)
+
+### Image & Interface Enhancements
+- **Image Zoom**: Click to zoom functionality for examining details
+- **Speed Controls**: Auto-play speed controls (0.5x, 1x, 2x speed)
+- **Keyboard Shortcuts**: Space = play/pause, arrows = navigation, Enter = submit
+- **Sound Effects**: Subtle audio feedback for correct/incorrect answers
+- **Better Loading States**: Progress indicators during image loading
+
+### Game Modes
+- **Practice Mode**: No scoring, shows answers immediately for learning
+- **Speed Mode**: Time limits per question with bonus points for quick answers
+- **Themed Games**: Filter by major taxonomic groups ("Mammals Only", "Birds Only")
+- **Challenge of the Day**: Same 10 taxa for all players on a given day
+
+### Social & Sharing
+- **Shareable Score Cards**: Generate images with score and stats for sharing
+- **Enhanced Leaderboards**: Weekly/monthly boards, regional competitions
+
+### Educational Features
+- **Post-Answer Learning**: Show 2-3 similar species with distinguishing features
+- **Image Metadata**: Display location, date, and camera trap information when available
+
+### Data & Search Improvements
+- **Enhanced Autocomplete**: Support inferred taxonomic levels (e.g., allow "primates" even if not explicitly labeled in database, but primates exist at species level)
+- **Geographic Context**: 
+  - Ingest dataset names from original CSV files
+  - Map dataset names to countries/continents using lookup table
+  - Display geographic context for each image sequence
+
+### LLM-Powered Features
+- **Hints System**: AI-generated hints about distinctive features to look for
+- **Fun Facts**: Interesting information about correctly identified species
+- **Explanation Engine**: AI explanations of why certain guesses were close or distant
+
+These features range from simple UI improvements to more complex data integration and AI-powered educational enhancements. Implementation priority should focus on high-impact, easy-to-implement features first, followed by more sophisticated learning aids.
