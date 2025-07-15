@@ -200,9 +200,9 @@ function saveHighScore() {
                 </div>
             `;
             
-            // Refresh page to show updated high scores
+            // Redirect to high scores page to show updated leaderboard
             setTimeout(() => {
-                window.location.reload();
+                window.location.href = '{{ url_prefix }}/high_scores';
             }, 2000);
         } else {
             alert('Failed to save high score: ' + (result.error || 'Unknown error'));
