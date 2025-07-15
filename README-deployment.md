@@ -319,6 +319,15 @@ docker-compose exec lila-game sqlite3 /app/data/camera_trap_data.db
 
 # Backup the database
 docker-compose exec lila-game cp /app/data/camera_trap_data.db /app/data/backup-$(date +%Y%m%d).db
+
+# Clear high scores (for testing/reset)
+sqlite3 data/camera_trap_data.db "DELETE FROM high_scores;"
+
+# View current high scores
+sqlite3 data/camera_trap_data.db "SELECT player_name, score, game_date FROM high_scores ORDER BY score DESC;"
+
+# Check database stats
+sqlite3 data/camera_trap_data.db "SELECT COUNT(*) as taxa_count FROM taxa; SELECT COUNT(*) as scores_count FROM high_scores;"
 ```
 
 #### Running alongside Apache
