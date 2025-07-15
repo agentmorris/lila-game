@@ -1,4 +1,4 @@
-version: '3.8'
+version: '3.7'
 
 services:
   lila-game:
@@ -8,8 +8,6 @@ services:
     volumes:
       # Persist database and config files
       - ./data:/app/data
-      - ./.gemini-key:/app/.gemini-key:ro
-      - ./.gemini-config:/app/.gemini-config:ro
     environment:
       - GEMINI_API_KEY=${GEMINI_API_KEY}
       - GEMINI_MODEL_NAME=${GEMINI_MODEL_NAME}
