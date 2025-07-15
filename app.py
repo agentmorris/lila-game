@@ -20,6 +20,10 @@ app.secret_key = os.urandom(24)  # Random secret key for sessions
 APPLICATION_ROOT = os.getenv('APPLICATION_ROOT', '/')
 if APPLICATION_ROOT != '/':
     app.config['APPLICATION_ROOT'] = APPLICATION_ROOT
+    
+# Debug: Print the configuration
+print(f"DEBUG: APPLICATION_ROOT set to: {APPLICATION_ROOT}")
+print(f"DEBUG: Flask config APPLICATION_ROOT: {app.config.get('APPLICATION_ROOT', 'Not set')}")
 
 # Configuration (with environment variable support)
 QUESTIONS_PER_GAME = int(os.getenv('QUESTIONS_PER_GAME', '10'))
