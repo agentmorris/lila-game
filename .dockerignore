@@ -1,0 +1,22 @@
+# Exclude database files from Docker build context
+*.db
+camera_trap_data.db
+data/
+*.sqlite
+*.sqlite3
+
+# Exclude large files and directories
+__pycache__/
+*.pyc
+.git/
+.vscode/
+*.log
+
+# Exclude backup files
+backup-*.db
+*.bak
+
+# Exclude development files
+.env
+venv/
+.pytest_cache/

@@ -19,8 +19,9 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY *.py ./
 COPY templates/ ./templates/
 COPY static/ ./static/
-COPY .env* ./
-COPY .gemini-* ./
+
+# Copy optional config files (will be mounted as volumes in docker-compose)
+# No need to copy .env or .gemini-* files - they're mounted as volumes
 
 # Create non-root user and set up data directory
 RUN useradd --create-home --shell /bin/bash appuser && \
