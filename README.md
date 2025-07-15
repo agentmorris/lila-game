@@ -4,10 +4,13 @@
 
 The LILA Game is an interactive web-based wildlife identification game that uses real camera trap images from conservation research projects. Players view sequences of wildlife images and challenge themselves to identify the animals at various taxonomic levels - from species to family to order.
 
+<img src="screenshot_00.jpg" style="width:600px;">
+
 **Key Features:**
 - Real camera trap image sequences from wildlife research
 - Hierarchical scoring system (10 points for species, 5 for genus, 3 for family, etc.)
 - Autocomplete search supporting both scientific and common names
+- AI-generated hints and "fun facts"
 - High score leaderboard
 - Responsive web interface optimized for learning
 
@@ -368,3 +371,7 @@ The following features would enhance the game experience and are planned for fut
 - **Explanation Engine**: AI explanations of why certain guesses were close or distant
 
 These features range from simple UI improvements to more complex data integration and AI-powered educational enhancements. Implementation priority should focus on high-impact, easy-to-implement features first, followed by more sophisticated learning aids.
+
+## Bonus screenshots
+
+<img src="screenshot_01.jpg">
