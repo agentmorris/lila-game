@@ -128,6 +128,12 @@
 </div>
 
 <script>
+// API endpoints (proxy-aware)
+const endpoints = {
+    saveHighScore: '{{ url_for("save_high_score") }}',
+    startGame: '{{ url_for("start_game") }}'
+};
+
 document.addEventListener('DOMContentLoaded', function() {
     setupHighScoreForm();
     setupPlayAgainButton();
@@ -173,7 +179,7 @@ function saveHighScore() {
     saveBtn.disabled = true;
     saveBtn.textContent = 'Saving...';
     
-    fetch('/save_high_score', {
+    fetch(endpoints.saveHighScore, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json'
@@ -225,7 +231,7 @@ function setupPlayAgainButton() {
 function startNewGame() {
     showLoading();
     
-    fetch('/start_game', {
+    fetch(endpoints.startGame, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json'
@@ -239,7 +245,7 @@ function startNewGame() {
             alert('Error starting game: ' + data.error);
         } else {
             // Redirect to first question
-            window.location.href = `/question/${data.session_id}/1`;
+            window.location.href = `question/${data.session_id}/1`;
         }
     })
     .catch(error => {

@@ -6,6 +6,7 @@ Database models and queries for Wildlife Camera Trap Game.
 import sqlite3
 import random
 import os
+from datetime import datetime
 from typing import List, Dict, Optional, Tuple
 
 # Support environment variable override for database path (useful for Docker)
@@ -208,7 +209,19 @@ class HighScores:
             LIMIT ?
         ''', (limit,))
         
-        scores = [dict(row) for row in cursor.fetchall()]
+        scores = []
+        for row in cursor.fetchall():
+            score_dict = dict(row)
+            # Convert game_date string to datetime object if it exists
+            if score_dict.get('game_date'):
+                try:
+                    # SQLite stores datetime as string, convert back to datetime
+                    score_dict['game_date'] = datetime.fromisoformat(score_dict['game_date'])
+                except (ValueError, TypeError):
+                    # If conversion fails, set to None
+                    score_dict['game_date'] = None
+            scores.append(score_dict)
+        
         conn.close()
         return scores
     

@@ -688,7 +688,7 @@ body {
 .message.excellent { background: linear-gradient(135deg, #f39c12 0%, #e67e22 100%); color: white; }
 .message.good { background: linear-gradient(135deg, #3498db 0%, #2980b9 100%); color: white; }
 .message.okay { background: linear-gradient(135deg, #9b59b6 0%, #8e44ad 100%); color: white; }
-.message.needs-work { background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%); color: white; }
+.message.needs-work { background: linear-gradient(135deg, #9b59b6 0%, #c0392b 100%); color: white; }
 
 .detailed-results {
     padding: 2rem;
@@ -724,7 +724,7 @@ body {
 }
 
 .high-score-section {
-    background: linear-gradient(135deg, #f39c12 0%, #e67e22 100%);
+    background: linear-gradient(135deg, #2a73bd 0%, #043f7a 100%);
     color: white;
     padding: 2rem;
     text-align: center;

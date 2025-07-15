@@ -150,6 +150,12 @@ QUESTIONS_PER_GAME=10
 SEQUENCES_PER_QUESTION=4
 IMAGE_CLOUD_PREFERENCE=gcp
 
+# Proxy Configuration (for Apache reverse proxy deployment)
+APPLICATION_ROOT=/
+
+# Debugging Configuration (for development)
+DISABLE_AI=false
+
 # Database Configuration (optional)
 DATABASE_PATH=/app/data/camera_trap_data.db
 ```
@@ -321,9 +327,34 @@ Since you mentioned Apache is already running on your server:
 
 1. **The app runs on port 5001 by default** (separate from Apache's 80/443)
 2. **Users access it directly**: `yourdomain.com:5001`
-3. **Optional: Set up Apache reverse proxy** to serve it on a subdomain:
+3. **Set up Apache reverse proxy** to serve it on a subdirectory path:
+
+   **Option A: Subdirectory Path (Recommended)**
    ```apache
-   # In Apache virtual host config
+   # In your existing Apache virtual host config
+   <VirtualHost *:80>
+       ServerName yourdomain.com
+       
+       # Your existing configuration...
+       
+       # LILA Game proxy
+       ProxyPass /lila-game http://localhost:5001/
+       ProxyPassReverse /lila-game http://localhost:5001/
+       ProxyPreserveHost On
+   </VirtualHost>
+   ```
+   
+   **Configure APPLICATION_ROOT for subdirectory deployment:**
+   ```bash
+   # In your .env file:
+   APPLICATION_ROOT=/lila-game
+   ```
+   
+   **Access:** `yourdomain.com/lila-game`
+
+   **Option B: Subdomain**
+   ```apache
+   # Separate virtual host for subdomain
    <VirtualHost *:80>
        ServerName lila-game.yourdomain.com
        ProxyPass / http://localhost:5001/
@@ -331,6 +362,35 @@ Since you mentioned Apache is already running on your server:
        ProxyPreserveHost On
    </VirtualHost>
    ```
+   
+   **Configure APPLICATION_ROOT for subdomain deployment:**
+   ```bash
+   # In your .env file:
+   APPLICATION_ROOT=/
+   ```
+   
+   **Access:** `lila-game.yourdomain.com`
+
+#### APPLICATION_ROOT Configuration
+
+The `APPLICATION_ROOT` setting is crucial for proper asset loading when using Apache reverse proxy:
+
+**For direct access (yourdomain.com:5001):**
+```env
+APPLICATION_ROOT=/
+```
+
+**For subdirectory proxy (yourdomain.com/lila-game):**
+```env
+APPLICATION_ROOT=/lila-game
+```
+
+**For subdomain proxy (lila-game.yourdomain.com):**
+```env
+APPLICATION_ROOT=/
+```
+
+This setting ensures that CSS files, JavaScript files, and AJAX requests use the correct paths when accessed through the Apache proxy.
 
 #### Troubleshooting
 

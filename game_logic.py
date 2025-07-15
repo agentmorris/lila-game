@@ -200,6 +200,11 @@ def get_correct_answer_display(taxon: Dict) -> str:
 def get_fun_fact(taxon: Dict) -> Optional[str]:
     """Get a fun fact about the taxon using Gemini API."""
     
+    # Check if AI is disabled
+    if os.getenv('DISABLE_AI') == 'true':
+        print("DEBUG: get_fun_fact - AI disabled via DISABLE_AI environment variable")
+        return None
+    
     api_key = get_gemini_api_key()
     if not api_key:
         print("DEBUG: get_fun_fact - No API key available")
@@ -259,6 +264,11 @@ def get_fun_fact(taxon: Dict) -> Optional[str]:
 
 def get_hint(taxon: Dict) -> Optional[str]:
     """Get a hint about the taxon using Gemini API without revealing taxonomic names."""
+    
+    # Check if AI is disabled
+    if os.getenv('DISABLE_AI') == 'true':
+        print("DEBUG: get_hint - AI disabled via DISABLE_AI environment variable")
+        return None
     
     api_key = get_gemini_api_key()
     if not api_key:
@@ -402,6 +412,11 @@ class GameSession:
     
     def _start_sequential_fun_fact_fetching(self):
         """Start sequential fun fact fetching in background."""
+        # Skip if AI is disabled
+        if os.getenv('DISABLE_AI') == 'true':
+            print("DEBUG: _start_sequential_fun_fact_fetching - AI disabled, skipping background fetching")
+            return
+            
         def sequential_fetcher():
             try:
                 for question_index in range(len(self.taxa_list)):

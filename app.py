@@ -16,6 +16,11 @@ load_dotenv()
 app = Flask(__name__)
 app.secret_key = os.urandom(24)  # Random secret key for sessions
 
+# Configure for Apache proxy deployment
+APPLICATION_ROOT = os.getenv('APPLICATION_ROOT', '/')
+if APPLICATION_ROOT != '/':
+    app.config['APPLICATION_ROOT'] = APPLICATION_ROOT
+
 # Configuration (with environment variable support)
 QUESTIONS_PER_GAME = int(os.getenv('QUESTIONS_PER_GAME', '10'))
 SEQUENCES_PER_QUESTION = int(os.getenv('SEQUENCES_PER_QUESTION', '4'))
@@ -137,8 +142,10 @@ def autocomplete():
     """Provide autocompletion for taxon guessing."""
     
     query = request.args.get('q', '').strip()
+    print(f"DEBUG: autocomplete route called with query: '{query}'")
     
     if len(query) < 2:  # Require at least 2 characters
+        print("DEBUG: autocomplete - query too short, returning empty list")
         return jsonify([])
     
     try:
@@ -157,10 +164,13 @@ def autocomplete():
             }
             suggestions.append(suggestion)
         
+        print(f"DEBUG: autocomplete - returning {len(suggestions)} suggestions")
         return jsonify(suggestions)
         
     except Exception as e:
-        print(f"Error in autocomplete: {e}")
+        print(f"ERROR: autocomplete - Exception: {e}")
+        import traceback
+        traceback.print_exc()
         return jsonify([])
 
 @app.route('/submit_guess', methods=['POST'])

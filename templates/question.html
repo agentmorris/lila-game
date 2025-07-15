@@ -125,6 +125,13 @@ const gameData = {
     totalImages: {{ total_images }}
 };
 
+// API endpoints (proxy-aware)
+const endpoints = {
+    autocomplete: '{{ url_for("autocomplete") }}',
+    getHint: '{{ url_for("get_hint") }}',
+    submitGuess: '{{ url_for("submit_guess") }}'
+};
+
 // Initialize game when page loads
 document.addEventListener('DOMContentLoaded', function() {
     initializeGame();
@@ -303,7 +310,7 @@ function setupGuessInput() {
 }
 
 function searchTaxa(query) {
-    fetch(`/autocomplete?q=${encodeURIComponent(query)}`)
+    fetch(`${endpoints.autocomplete}?q=${encodeURIComponent(query)}`)
         .then(response => response.json())
         .then(suggestions => {
             displaySuggestions(suggestions);
@@ -386,7 +393,7 @@ function getHint() {
         session_id: gameData.sessionId
     };
     
-    fetch('/get_hint', {
+    fetch(endpoints.getHint, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json'
@@ -439,7 +446,7 @@ function submitGuess() {
         guess_name: guessName
     };
     
-    fetch('/submit_guess', {
+    fetch(endpoints.submitGuess, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json'
@@ -492,9 +499,9 @@ function displayResult(result) {
     // Set up continue button
     document.getElementById('continue-btn').onclick = function() {
         if (result.is_game_complete) {
-            window.location.href = `/game_complete/${gameData.sessionId}`;
+            window.location.href = `{{ url_for('game_complete', session_id='PLACEHOLDER') }}`.replace('PLACEHOLDER', gameData.sessionId);
         } else {
-            window.location.href = `/question/${gameData.sessionId}/${gameData.questionNum + 1}`;
+            window.location.href = `{{ url_for('question', session_id='PLACEHOLDER', question_num=999) }}`.replace('PLACEHOLDER', gameData.sessionId).replace('999', gameData.questionNum + 1);
         }
     };
 }
