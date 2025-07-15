@@ -5,9 +5,15 @@ Database models and queries for Wildlife Camera Trap Game.
 
 import sqlite3
 import random
+import os
 from typing import List, Dict, Optional, Tuple
 
-DATABASE_PATH = 'camera_trap_data.db'
+# Support environment variable override for database path (useful for Docker)
+DATABASE_PATH = os.getenv('DATABASE_PATH', 'camera_trap_data.db')
+
+# If running in Docker, prefer data directory
+if os.path.exists('/app/data') and not os.path.exists(DATABASE_PATH):
+    DATABASE_PATH = '/app/data/camera_trap_data.db'
 
 def get_db_connection():
     """Get database connection with optimizations."""

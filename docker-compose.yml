@@ -1,0 +1,26 @@
+version: '3.8'
+
+services:
+  lila-game:
+    build: .
+    ports:
+      - "${PORT:-5001}:5001"
+    volumes:
+      # Persist database and config files
+      - ./data:/app/data
+      - ./.gemini-key:/app/.gemini-key:ro
+      - ./.gemini-config:/app/.gemini-config:ro
+    environment:
+      - GEMINI_API_KEY=${GEMINI_API_KEY}
+      - GEMINI_MODEL_NAME=${GEMINI_MODEL_NAME}
+      - FLASK_ENV=production
+      - PORT=5001
+    env_file:
+      - .env
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5001/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s

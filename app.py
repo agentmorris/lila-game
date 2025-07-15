@@ -6,16 +6,21 @@ Main Flask application for Wildlife Camera Trap Game.
 from flask import Flask, render_template, request, jsonify, session, redirect, url_for
 import uuid
 import os
+from dotenv import load_dotenv
 from models import Taxa, Sequences, Images, HighScores, GameData
 from game_logic import GameSession, get_scoring_explanation
+
+# Load environment variables
+load_dotenv()
 
 app = Flask(__name__)
 app.secret_key = os.urandom(24)  # Random secret key for sessions
 
-# Configuration
-QUESTIONS_PER_GAME = 10
-SEQUENCES_PER_QUESTION = 4
-IMAGE_CLOUD_PREFERENCE = 'gcp'  # 'gcp', 'aws', or 'azure'
+# Configuration (with environment variable support)
+QUESTIONS_PER_GAME = int(os.getenv('QUESTIONS_PER_GAME', '10'))
+SEQUENCES_PER_QUESTION = int(os.getenv('SEQUENCES_PER_QUESTION', '4'))
+IMAGE_CLOUD_PREFERENCE = os.getenv('IMAGE_CLOUD_PREFERENCE', 'gcp')  # 'gcp', 'aws', or 'azure'
+PORT = int(os.getenv('PORT', '5001'))
 
 # In-memory storage for game sessions
 game_sessions = {}
@@ -376,7 +381,9 @@ if __name__ == '__main__':
     print("Skipping database validation for faster startup...")
     
     # Run the application
-    print("Starting Wildlife Camera Trap Game...")
-    print("Open your browser to http://localhost:5001")
+    print("Starting The LILA Game...")
+    print(f"Open your browser to http://localhost:{PORT}")
     
-    app.run(debug=True, host='0.0.0.0', port=5001)
+    # Use environment-based debug mode
+    debug_mode = os.getenv('FLASK_ENV') != 'production'
+    app.run(debug=debug_mode, host='0.0.0.0', port=PORT)
