@@ -130,8 +130,8 @@
 <script>
 // API endpoints (proxy-aware)
 const endpoints = {
-    saveHighScore: '{{ url_for("save_high_score") }}',
-    startGame: '{{ url_for("start_game") }}'
+    saveHighScore: '{{ url_prefix }}/save_high_score',
+    startGame: '{{ url_prefix }}/start_game'
 };
 
 document.addEventListener('DOMContentLoaded', function() {
@@ -245,7 +245,7 @@ function startNewGame() {
             alert('Error starting game: ' + data.error);
         } else {
             // Redirect to first question
-            window.location.href = `question/${data.session_id}/1`;
+            window.location.href = `{{ url_prefix }}/question/${data.session_id}/1`;
         }
     })
     .catch(error => {

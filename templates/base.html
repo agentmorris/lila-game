@@ -4,18 +4,18 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}The LILA Game{% endblock %}</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="stylesheet" href="{{ url_prefix }}/static/style.css">
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
 </head>
 <body>
     <header class="header">
         <div class="container">
             <h1 class="logo">
-                <a href="{{ url_for('index') }}">🦌 The LILA Game</a>
+                <a href="{{ url_prefix }}/">🦌 The LILA Game</a>
             </h1>
             <nav class="nav">
-                <a href="{{ url_for('index') }}" class="nav-link">Home</a>
-                <a href="{{ url_for('high_scores') }}" class="nav-link">High scores</a>
+                <a href="{{ url_prefix }}/" class="nav-link">Home</a>
+                <a href="{{ url_prefix }}/high_scores" class="nav-link">High scores</a>
                 <a href="https://lila.science" class="nav-link" target="_blank">Visit LILA</a>
             </nav>
         </div>
@@ -37,7 +37,7 @@
     </div>
 
     <!-- Scripts -->
-    <script src="{{ url_for('static', filename='game.js') }}"></script>
+    <script src="{{ url_prefix }}/static/game.js"></script></script>
     {% block scripts %}{% endblock %}
 </body>
 </html>

@@ -148,7 +148,7 @@ document.addEventListener('DOMContentLoaded', function() {
 function startNewGame() {
     showLoading();
     
-    fetch('{{ url_for("start_game") }}', {
+    fetch('{{ url_prefix }}/start_game', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json'
@@ -162,7 +162,7 @@ function startNewGame() {
             alert('Error starting game: ' + data.error);
         } else {
             // Redirect to first question
-            window.location.href = `question/${data.session_id}/1`;
+            window.location.href = `{{ url_prefix }}/question/${data.session_id}/1`;
         }
     })
     .catch(error => {

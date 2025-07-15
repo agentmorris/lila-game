@@ -127,9 +127,9 @@ const gameData = {
 
 // API endpoints (proxy-aware)
 const endpoints = {
-    autocomplete: '{{ url_for("autocomplete") }}',
-    getHint: '{{ url_for("get_hint") }}',
-    submitGuess: '{{ url_for("submit_guess") }}'
+    autocomplete: '{{ url_prefix }}/autocomplete',
+    getHint: '{{ url_prefix }}/get_hint',
+    submitGuess: '{{ url_prefix }}/submit_guess'
 };
 
 // Initialize game when page loads
@@ -499,9 +499,9 @@ function displayResult(result) {
     // Set up continue button
     document.getElementById('continue-btn').onclick = function() {
         if (result.is_game_complete) {
-            window.location.href = `{{ url_for('game_complete', session_id='PLACEHOLDER') }}`.replace('PLACEHOLDER', gameData.sessionId);
+            window.location.href = `{{ url_prefix }}/game_complete/${gameData.sessionId}`;
         } else {
-            window.location.href = `{{ url_for('question', session_id='PLACEHOLDER', question_num=999) }}`.replace('PLACEHOLDER', gameData.sessionId).replace('999', gameData.questionNum + 1);
+            window.location.href = `{{ url_prefix }}/question/${gameData.sessionId}/${gameData.questionNum + 1}`;
         }
     };
 }
