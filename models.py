@@ -9,11 +9,28 @@ import os
 from typing import List, Dict, Optional, Tuple
 
 # Support environment variable override for database path (useful for Docker)
-DATABASE_PATH = os.getenv('DATABASE_PATH', 'camera_trap_data.db')
+DATABASE_PATH = os.getenv('DATABASE_PATH')
 
-# If running in Docker, prefer data directory
-if os.path.exists('/app/data') and not os.path.exists(DATABASE_PATH):
-    DATABASE_PATH = '/app/data/camera_trap_data.db'
+if not DATABASE_PATH:
+    # Auto-detect database location
+    possible_paths = [
+        '/app/data/camera_trap_data.db',  # Docker volume mount
+        'data/camera_trap_data.db',      # Local development with data dir
+        'camera_trap_data.db'            # Local development, current dir
+    ]
+    
+    for path in possible_paths:
+        if os.path.exists(path):
+            DATABASE_PATH = path
+            print(f"DEBUG: Found database at: {DATABASE_PATH}")
+            break
+    
+    if not DATABASE_PATH:
+        # Default to Docker path (will be created if needed)
+        DATABASE_PATH = '/app/data/camera_trap_data.db'
+        print(f"DEBUG: No existing database found, using default: {DATABASE_PATH}")
+
+print(f"DEBUG: Using database path: {DATABASE_PATH}")
 
 def get_db_connection():
     """Get database connection with optimizations."""

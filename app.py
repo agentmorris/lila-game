@@ -359,12 +359,16 @@ def cleanup_sessions():
             game_sessions.pop(session_id, None)
 
 if __name__ == '__main__':
+    # Import DATABASE_PATH from models to use consistent path logic
+    from models import DATABASE_PATH
+    
     # Check if database exists
-    if not os.path.exists('camera_trap_data.db'):
-        print("Error: Database not found!")
+    if not os.path.exists(DATABASE_PATH):
+        print(f"Error: Database not found at: {DATABASE_PATH}")
         print("Please run:")
         print("1. python db_setup.py")
         print("2. python data_processor.py --csv-path /path/to/your/data.csv")
+        print(f"Expected database location: {DATABASE_PATH}")
         exit(1)
     
     # Validate database (commented out for large databases - slow queries)
