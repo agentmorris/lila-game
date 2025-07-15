@@ -374,4 +374,7 @@ These features range from simple UI improvements to more complex data integratio
 
 ## Bonus screenshots
 
+<img src="screenshot_02.jpg">
+
 <img src="screenshot_01.jpg">
+
