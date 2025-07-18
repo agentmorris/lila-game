@@ -327,6 +327,10 @@ For issues with this implementation:
 
 The system is designed to be simple and robust, but wildlife camera trap data can be complex. If you encounter issues with your specific dataset, the most common cause is unexpected data formatting in the CSV file.
 
+## Known issues
+
+- **Common name matches at non-species level**: Currently, e.g. guessing "porcupine" fails to match "malayan porcupine".  Fixing this requires either (a) heuristics for substring matching, to prevent, e.g. "e" or "common" from matching lots of things, or (b) populating the underlying DB with common names at all taxonomic levels.  (b) is the "right" solution.
+
 ## Next Steps
 
 The following features would enhance the game experience and are planned for future development:
