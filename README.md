@@ -6,7 +6,12 @@ The LILA Game is an interactive web-based wildlife identification game that uses
 
 <img src="screenshot_00.jpg" style="width:600px;">
 
-**Key Features:**
+## Try it!
+
+It's extremely likely (but not guaranteed) that at the time you're reading this, an instance of the LILA Game is running [here](https://dmorris.net/lila-game).
+
+## Key Features
+
 - Real camera trap image sequences from wildlife research
 - Hierarchical scoring system (10 points for species, 5 for genus, 3 for family, etc.)
 - Autocomplete search supporting both scientific and common names
