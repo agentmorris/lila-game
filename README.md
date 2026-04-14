@@ -143,7 +143,7 @@ cp camera_trap_data.db data/
 
 # Set up environment variables
 cp .env.example .env
-nano .env  # Add your Gemini API key
+vi .env  # Add your Gemini API key
 
 # Optional: Set up Gemini model preference
 echo "gemini-1.5-flash" > .gemini-config
@@ -158,6 +158,8 @@ docker-compose up -d --build
 # View logs to ensure it's running
 docker-compose logs -f
 ```
+
+Note to self: the .env file is read during the build step, but not copied to the running image.  The (very large) .db file is copied to magical-Docker-land, so deleting the original cloned repo has no impact on the running container.
 
 #### Verify deployment
 
@@ -239,7 +241,6 @@ sqlite3 data/camera_trap_data.db "SELECT COUNT(*) as taxa_count FROM taxa; SELEC
 2. **Users access it directly**: `yourdomain.com:5001`
 3. **Set up Apache reverse proxy** to serve it on a subdirectory path:
 
-   **Option A: Subdirectory Path (Recommended)**
    ```apache
    # In your existing Apache virtual host config
    <VirtualHost *:80>
@@ -254,7 +255,6 @@ sqlite3 data/camera_trap_data.db "SELECT COUNT(*) as taxa_count FROM taxa; SELEC
    </VirtualHost>
    ```
    
-   **Configure APPLICATION_ROOT for subdirectory deployment:**
    ```bash
    # In your .env file:
    APPLICATION_ROOT=/lila-game
@@ -262,49 +262,10 @@ sqlite3 data/camera_trap_data.db "SELECT COUNT(*) as taxa_count FROM taxa; SELEC
    
    **Access:** `yourdomain.com/lila-game`
 
-   **Option B: Subdomain**
-   ```apache
-   # Separate virtual host for subdomain
-   <VirtualHost *:80>
-       ServerName lila-game.yourdomain.com
-       ProxyPass / http://localhost:5001/
-       ProxyPassReverse / http://localhost:5001/
-       ProxyPreserveHost On
-   </VirtualHost>
-   ```
-   
-   **Configure APPLICATION_ROOT for subdomain deployment:**
-   ```bash
-   # In your .env file:
-   APPLICATION_ROOT=/
-   ```
-   
-   **Access:** `lila-game.yourdomain.com`
-
-#### APPLICATION_ROOT Configuration
-
-The `APPLICATION_ROOT` setting is crucial for proper asset loading when using Apache reverse proxy:
-
-**For direct access (yourdomain.com:5001):**
-```env
-APPLICATION_ROOT=/
-```
-
-**For subdirectory proxy (yourdomain.com/lila-game):**
-```env
-APPLICATION_ROOT=/lila-game
-```
-
-**For subdomain proxy (lila-game.yourdomain.com):**
-```env
-APPLICATION_ROOT=/
-```
-
-This setting ensures that CSS files, JavaScript files, and AJAX requests use the correct paths when accessed through the Apache proxy.
-
 #### Deployment troubleshooting
 
 **Port already in use:**
+
 ```bash
 # Check what's using port 5001
 sudo netstat -tlnp | grep :5001
@@ -313,6 +274,7 @@ sudo netstat -tlnp | grep :5001
 ```
 
 **Database issues:**
+
 ```bash
 # Check if database file exists and is readable
 docker-compose exec lila-game ls -la /app/data/
@@ -322,6 +284,7 @@ docker-compose exec lila-game sqlite3 /app/data/camera_trap_data.db "SELECT COUN
 ```
 
 **AI features not working:**
+
 ```bash
 # Check API key configuration
 docker-compose exec lila-game cat /app/.gemini-key
@@ -331,6 +294,7 @@ docker-compose logs | grep -i gemini
 ```
 
 **Container won't start:**
+
 ```bash
 # Check detailed logs
 docker-compose logs lila-game
@@ -400,18 +364,18 @@ For hints and fun facts features:
 
 2. **Provide the API key** using one of these methods (in order of priority):
 
-   **Option A: Environment Variable**
-   ```bash
-   export GEMINI_API_KEY="your-api-key-here"
-   ```
-
-   **Option B: .env File**
+   **Option A: .env file (used for deployment)**
    Create a `.env` file in the project root:
    ```
    GEMINI_API_KEY=your-api-key-here
    ```
 
-   **Option C: .gemini-key File**
+   **Option B: environment variable**
+   ```bash
+   export GEMINI_API_KEY="your-api-key-here"
+   ```
+   
+   **Option C: .gemini-key file**
    Create a `.gemini-key` file in the project root:
    ```
    your-api-key-here
