@@ -159,7 +159,7 @@ docker-compose up -d --build
 docker-compose logs -f
 ```
 
-Note to self: the .env file is read during the build step, but not copied to the running image.  The (very large) .db file is copied to magical-Docker-land, so deleting the original cloned repo has no impact on the running container.
+Note to self: the .env file is read during the build step, but not copied to the running image.  The (very large) .db file is accessed via a "bind mount", i.e., unlike other files, the database is <i>not</i> copied to magical-Docker-land, the .db file is shared between the host file system and the Docker container.
 
 #### Verify deployment
 
